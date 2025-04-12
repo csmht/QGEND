@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录与注册</title>
+  <link rel="stylesheet" href="../UserLogin/UserLogin.css">
+  <script src="../axios.min.js"></script>
+</head>
+
+<body>
+<div id="app">
+
+<div class="container">
+  <div class="toggle-buttons">
+    <button id="loginButton" @click="inLoginButtle()" class="no active">登录</button>
+    <button id="registerButton" @click="inregisterButtle()" class="no">注册</button>
+  </div>
+  <form id="loginForm" v-model="LoginData" class="form active">
+    <h2>登录</h2>
+    <input type="text" placeholder="用户名" v-model="loginUserName" name="loginUserName" id="loginUserName" required/>
+    <span id="username_err" style="display: none">用户名不存在</span>
+    <input type="password" v-model="loginPassWord" placeholder="密码" name="loginPassWord" required/>
+    <span id="password_err" style="display: none">密码错误</span>
+    <input type="text" v-model="loginpd" placeholder="验证码" name="loginpd" required/>
+    <button type="submit" @click="LoginUser()">登录</button>
+  </form>
+  <form id="registerForm"  class="form">
+    <h2>注册</h2>
+    <input type="text" placeholder="用户名" v-model="newUserName" name="newUserName" id="newUserName"  required/>
+    <span id="username_err2" style="display: none">用户名已存在</span>
+    <input type="Email" placeholder="邮箱" v-model="Email" name="Email" id="Email" required/>
+    <input type="password" placeholder="密码" v-model="newPassWord" name="newPassWord" id="newPassWord" required/>
+    <input type="password" placeholder="再次确认密码" v-model="aganinPassWord" name="againPassWord" id="againPassWord" required/>
+    <button type="submit" name="registerSubmit" @click="registerUser()" id="newUser">注册</button>
+  </form>
+</div>
+
+
+
+
+</div>
+
+<script src="../vue.js"></script>
+<script>
+  new Vue({
+      el: '#app',
+
+      data: {
+        return:{
+          loginUserName: '',
+          loginPassWord: '',
+          loginpd: '',
+          LoginData: '',
+          newUserName: '',
+          Email: '',
+          newPassWord: '',
+          aganinPassWord: '',
+
+
+        }
+     },
+
+     methods: {
+        inLoginButtle() {
+           document.getElementById('loginForm').classList.add('active');
+           document.getElementById('registerForm').classList.remove('active');
+           document.getElementById('loginButton').classList.add('active');
+           document.getElementById('registerButton').classList.remove('active');
+        },
+
+        inregisterButtle() {
+          document.getElementById('loginForm').classList.remove('active');
+          document.getElementById('registerForm').classList.add('active');
+          document.getElementById('loginButton').classList.remove('active');
+          document.getElementById('registerButton').classList.add('active');
+        },
+
+        LoginUser() {
+          event.preventDefault();
+            const _this = this;
+            if(this.loginUserName != '' && this.loginPassWord != ''){
+              axios.post('/UserIn/UserLogin', {
+                'UserID': this.loginUserName,
+                'PassWord': this.loginPassWord,
+              }).then((res) => {
+                if(res.status == 200){
+                  if(res.data === true){
+                    window.location.assign("http://localhost:8080/User");
+                  }else{
+                    alert("登录失败");
+                  }
+                }
+
+              }).catch()
+
+            }
+        },
+
+        registerUser() {
+          event.preventDefault();
+          const _this = this;
+          if(this.newUserName != '' && this.newPassWord != ''){
+            if(this.newPassWord != this.aganinPassWord) {
+              alert("两次密码不同");
+            }else {
+              axios.post('/UserIn/UserRegister', {
+                'UserID': this.newUserName,
+                'PassWord': this.newPassWord,
+                'Email': this.Email,
+              }).then((res) => {
+                if(res.status == 200){
+                  if(res.data == true){
+                    alert("注册成功");
+                  }else if(res.data == more){
+                    alert("该用户名已经纯在")
+                  }else{
+                    alert('注册失败');
+                  }
+                }
+              }).catch()
+
+
+            }
+          }
+        }
+
+
+
+     }
+
+
+  })
+
+</script>
+
+
+</body>
+
+</html>
