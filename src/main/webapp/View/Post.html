@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帖子详情</title>
+    <script src="../axios.min.js"></script>
+    <script src="../vue.js"></script>
+
+        <link rel="stylesheet" href="../View/Post.css">
+
+</head>
+
+<body>
+<div id="post-app">
+    <div class="post-container">
+        <h1 class="post-title">{{ post.title }}</h1>
+        <p class="post-content">{{ post.content }}</p>
+        <img class="post-image" :src="post.image" alt="帖子图片">
+        <div class="publisher-info">
+            <span>发布者: {{ post.publisher.name }}</span>
+            <span>发布时间: {{ post.publisher.postTime }}</span>
+        </div>
+        <div class="actions">
+            <button @click="likePost">点赞 ({{ post.likes }})</button>
+            <button @click="collectPost">收藏 ({{ post.collects }})</button>
+        </div>
+        <div class="comments">
+            <h2>评论 ({{ comments.length }})</h2>
+            <div class="comment" v-for="comment in comments" :key="comment.id">
+                <div class="comment-author">{{ comment.author }}</div>
+                <div class="comment-text">{{ comment.text }}</div>
+                <button @click="showReplyInput(comment)">回复</button>
+                <div class="reply-section" v-if="comment.showReplyInput">
+                    <textarea v-model="comment.replyText" placeholder="请输入回复内容"></textarea>
+                    <button @click="submitReply(comment)">提交回复</button>
+                </div>
+                <div class="reply" v-for="reply in comment.replies" :key="reply.id">
+                    <div class="reply-author">{{ reply.author }}</div>
+                    <div class="reply-text">{{ reply.text }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="new-comment">
+            <h2>发表评论</h2>
+            <textarea v-model="newCommentText" placeholder="请输入评论内容"></textarea>
+            <button @click="submitComment">提交评论</button>
+        </div>
+    </div>
+</div>
+<script>
+    new Vue({
+        el: '#post-app',
+        data: {
+            post: {
+                title: '示例帖子标题',
+                content: '这是一个示例帖子的内容，包含详细的文字描述。',
+                image: 'https://picsum.photos/800/400',
+                publisher: {
+                    name: '示例发布者',
+                    postTime: '2025-04-13 12:00'
+                },
+                likes: 10,
+                collects: 5
+            },
+            comments: [
+                {
+                    id: 1,
+                    author: '用户1',
+                    text: '这篇帖子很有价值！',
+                    showReplyInput: false,
+                    replyText: '',
+                    replies: [
+                        {
+                            id: 11,
+                            author: '用户2',
+                            text: '确实如此！'
+                        }
+                    ]
+                },
+                {
+                    id: 2,
+                    author: '用户2',
+                    text: '写得不错，继续加油！',
+                    showReplyInput: false,
+                    replyText: '',
+                    replies: []
+                }
+            ],
+            newCommentText: ''
+        },
+        methods: {
+            likePost() {
+                this.post.likes++;
+            },
+            collectPost() {
+                this.post.collects++;
+            },
+            submitComment() {
+                if (this.newCommentText.trim() !== '') {
+                    const newComment = {
+                        id: this.comments.length + 1,
+                        author: '当前用户',
+                        text: this.newCommentText,
+                        showReplyInput: false,
+                        replyText: '',
+                        replies: []
+                    };
+                    this.comments.push(newComment);
+                    this.newCommentText = '';
+                }
+            },
+            showReplyInput(comment) {
+                comment.showReplyInput = !comment.showReplyInput;
+            },
+            submitReply(comment) {
+                if (comment.replyText.trim() !== '') {
+                    const newReply = {
+                        id: Date.now(),
+                        author: '当前用户',
+                        text: comment.replyText
+                    };
+                    comment.replies.push(newReply);
+                    comment.replyText = '';
+                    comment.showReplyInput = false;
+                }
+            }
+        }
+    });
+</script>
+</body>
+
+</html>

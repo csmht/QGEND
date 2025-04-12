@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帖子与板块查看页面</title>
+    <script src="../axios.min.js"></script>
+    <script src="../vue.js"></script>
+
+    <link rel="stylesheet" href="../View/Home.css">
+
+</head>
+
+<body>
+<div id="app">
+    <div class="container">
+        <div class="posts-section">
+            <div class="toggle-buttons">
+                <button :class="{ active: isLatestPosts }" @click="showLatestPosts">最新帖子</button>
+                <button :class="{ active:!isLatestPosts }" @click="showPopularPosts">热门帖子</button>
+            </div>
+            <div class="post" v-for="post in currentPosts" :key="post.id">
+                <h3>{{ post.title }}</h3>
+                <p>作者: {{ post.author }}</p>
+                <p>浏览量: {{ post.views }}</p>
+                <p>点赞量: {{ post.likes }}</p>
+            </div>
+        </div>
+        <div class="boards-section">
+            <h2>热门板块</h2>
+            <div class="board" v-for="board in popularBoards" :key="board.id">
+                <h3>{{ board.name }}</h3>
+                <p>帖子数量: {{ board.postCount }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            latestPosts: [
+                {
+                    id: 1,
+                    title: '最新帖子1',
+                    author: '用户1',
+                    views: 100,
+                    likes: 20
+                },
+                {
+                    id: 2,
+                    title: '最新帖子2',
+                    author: '用户2',
+                    views: 80,
+                    likes: 15
+                }
+            ],
+            popularPosts: [
+                {
+                    id: 3,
+                    title: '热门帖子1',
+                    author: '用户3',
+                    views: 500,
+                    likes: 100
+                },
+                {
+                    id: 4,
+                    title: '热门帖子2',
+                    author: '用户4',
+                    views: 400,
+                    likes: 80
+                }
+            ],
+            popularBoards: [
+                {
+                    id: 1,
+                    name: '热门板块1',
+                    postCount: 200
+                },
+                {
+                    id: 2,
+                    name: '热门板块2',
+                    postCount: 150
+                }
+            ],
+            isLatestPosts: true,
+            currentPosts: []
+        },
+        created() {
+            this.currentPosts = this.latestPosts;
+        },
+        methods: {
+            showLatestPosts() {
+                this.isLatestPosts = true;
+                this.currentPosts = this.latestPosts;
+            },
+            showPopularPosts() {
+                this.isLatestPosts = false;
+                this.currentPosts = this.popularPosts;
+            }
+        }
+    });
+</script>
+</body>
+
+</html>

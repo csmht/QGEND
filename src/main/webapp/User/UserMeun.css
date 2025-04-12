@@ -1,0 +1,104 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+/* 头部样式 */
+header {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+/* 侧边栏样式 */
+aside {
+    width: 200px;
+    background-color: #e0e0e0;
+    padding: 20px;
+    float: left;
+}
+
+aside button {
+    border: none;
+    display: block;
+    width: 100%;
+    padding: 15px;
+    background-color: #ffffff;
+    color: #000000;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+aside button:hover {
+    background-color: #b3b3b6;
+}
+
+button:active{
+    background-color: #67676c;
+}
+
+/* 主内容区域样式 */
+main {
+    margin-left: 240px;
+    padding: 20px;
+}
+
+/* 用户信息卡片样式 */
+.user-info {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.user-info img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+/* 关注的用户和板块样式 */
+.follow-section {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.follow-section h3 {
+    margin-top: 0;
+}
+
+.follow-section ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.follow-section ul li {
+    margin-bottom: 5px;
+}
+
+/* 用户发布的帖子样式 */
+.post {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.post img {
+    max-width: 100%;
+    height: auto;
+}
+
+.controls{
+    top: 10px;
+    right: 10px;
+}

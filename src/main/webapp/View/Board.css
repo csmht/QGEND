@@ -1,0 +1,63 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.module-container {
+    width: 80%;
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 20px;
+}
+
+.module-info {
+    margin-bottom: 20px;
+}
+
+.module-info h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.module-info p {
+    margin-bottom: 5px;
+}
+
+.module-actions {
+    margin-bottom: 20px;
+}
+
+.module-actions button {
+    margin-right: 10px;
+}
+
+.posts-list {
+    margin-top: 20px;
+}
+
+.post {
+    border: 1px solid #eee;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.post h3 {
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.post p {
+    margin-bottom: 3px;
+}
+
+.post-content-preview {
+    max-height: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
