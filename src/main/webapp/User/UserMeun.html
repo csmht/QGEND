@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" >
+
 <head>
     <meta charset="UTF-8">
     <title>用户菜单</title>
@@ -16,7 +17,7 @@
     </header>
     <!-- 侧边栏 -->
     <aside>
-
+        <button @click="openHome()">查看热门帖子</button>
         <button @click="showPage('profile')">个人信息中心</button>
         <button @click="showPage('followedUsers')">关注的用户</button>
         <button @click="showPage('followedSections')">关注的板块</button>
@@ -48,12 +49,12 @@
         <div class="follow-section" v-if="currentPage === 'followedSections'">
             <h3>关注的板块</h3>
             <ul>
-                <li v-for="section in followedSections" :key="section">{{ section }}</li>
+                <li  v-for="section in followedSections" :key="section">{{ section }}</li>
             </ul>
         </div>
-        <!-- 用户发布的帖子 -->
+        <!-- 用户看过的帖子 -->
         <div v-if="currentPage === 'postHistory'">
-            <div class="post" v-for="post in posts" :key="post.postID">
+            <div  @click="showPost(post.post_id)" class="post" v-for="post in posts" :key="post.postID">
                 <h3>{{ post.title }}</h3>
                 <p>{{ post.content }}</p>
                 <img :src="post.image" alt="帖子图片">
@@ -77,7 +78,7 @@
             followedSections: ['AI', '区块链', 'Web开发'],
             posts: [
                 {
-                    postID: 1,
+                    post_id: 1,
                     title: '帖子标题1',
                     content: '帖子内容：这是一段帖子的内容示例，包含文字描述。',
                     image: '',
@@ -85,7 +86,7 @@
                     collects: 5
                 },
                 {
-                    postID: 2,
+                    post_id: 2,
                     title: '帖子标题2',
                     content: '帖子内容：这是另一段帖子的内容示例，包含文字描述。',
                     image: '',
@@ -99,7 +100,16 @@
         methods: {
             showPage(page) {
                 this.currentPage = page;
-            }
+            },
+
+            openHome() {
+                window.open("../View/Home.html", "_blank");
+            },
+
+            showPost(post_id) {
+                window.open(`../View/Post.html?post_id=${post_id}`, "_blank");
+            },
+
         }
     });
 </script>

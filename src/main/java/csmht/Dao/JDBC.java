@@ -7,7 +7,16 @@ import java.sql.SQLException;
 
 public class JDBC {
 
-
+    /**
+     * 查找
+     * @param conn
+     * @param main 表数组，第一个为主表
+     * @param sub 关联表，第一个为主表列
+     * @param key 约束列
+     * @param val 约束值
+     * @return
+     * @throws SQLException
+     */
     public static ResultSet find(Connection conn,String[] main,String[] sub,String[] key,String[] val) throws SQLException {
         StringBuilder sql = new StringBuilder("select ");
         for (int i = 0; i < main.length; i++) {
@@ -40,6 +49,15 @@ public class JDBC {
         return ps.executeQuery();
     }
 
+    /**
+     *
+     * @param conn
+     * @param main 主表
+     * @param key 约束列
+     * @param val 约束值
+     * @return
+     * @throws SQLException
+     */
     public static int add(Connection conn,String main,String[] key,String[] val) throws SQLException {
 
         StringBuilder sql = new StringBuilder("insert into ");
@@ -57,7 +75,15 @@ public class JDBC {
         return conn.prepareStatement(sql.toString()).executeUpdate();
     }
 
-
+    /**
+     * 删除
+     * @param conn
+     * @param main 主表
+     * @param key 约束列
+     * @param val 约束值
+     * @return
+     * @throws SQLException
+     */
     public static int delete(Connection conn,String main,String[] key,String[] val) throws SQLException {
         StringBuilder sql = new StringBuilder("delete from ");
         sql.append(main);
@@ -77,11 +103,11 @@ public class JDBC {
     /**
      *
      * @param conn
-     * @param main
-     * @param key1 changer
-     * @param val1
-     * @param key2 where
-     * @param val2
+     * @param main 表
+     * @param key1 改变列
+     * @param val1 改变值
+     * @param key2 约束列
+     * @param val2 约束值
      * @return
      * @throws SQLException
      */

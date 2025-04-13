@@ -40,12 +40,13 @@
         el: '#module-app',
         data: {
             module: {
+                borad_id:1,
                 title: '示例模块标题',
                 creator: '示例创建者',
                 followers: 10,
                 posts: [
                     {
-                        id: 1,
+                        post_id: 1,
                         title: '帖子标题1',
                         publisher: '用户1',
                         likes: 20,
@@ -53,7 +54,7 @@
                         content: '这是帖子1的详细内容，包含很多有用的信息。这是帖子1的详细内容，包含很多有用的信息。这是帖子1的详细内容，包含很多有用的信息。'
                     },
                     {
-                        id: 2,
+                        post_id: 2,
                         title: '帖子标题2',
                         publisher: '用户2',
                         likes: 15,
@@ -70,6 +71,18 @@
             reportModule() {
                 alert('你已举报该模块，我们会尽快处理。');
             }
+        },
+        beforeMount() {
+            this.borad_id = this.$route.query.borad_id;
+            var _this = this;
+            axios.post("/User/FindPost",{"board-id":this.borad_id}).then((response) => {
+                _this.borad_id = response.data.borad_id;
+                _this.title = response.data.title;
+                _this.creator = response.data.creator;
+                _this.followers = response.data.followers;
+
+
+            })
         }
     });
 </script>

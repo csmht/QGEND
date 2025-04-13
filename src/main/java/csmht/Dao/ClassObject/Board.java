@@ -26,7 +26,7 @@ public class Board extends UserClass {
     private int image_id;
 
     @JSONField(name="image")
-    String image;
+    private byte[] image;
 
     @JSONField(name="post_id")
     private List<Integer> post_id = new ArrayList<>();
@@ -41,44 +41,56 @@ public class Board extends UserClass {
     public String getTitle() {
         return title;
     }
+
     public void setTitle(String title) {
         this.title = title;
     }
+
     public String getContent() {
         return content;
     }
+
     public void setContent(String content) {
         this.content = content;
     }
+
     public boolean isPass() {
         return pass;
     }
+
     public void setPass(boolean pass) {
         this.pass = pass;
     }
+
     public String getCreate_time() {
         return create_time;
     }
+
     public void setCreate_time(String create_time) {
         this.create_time = create_time;
     }
+
     public int getImage_id() {
         return image_id;
     }
+
     public void setImage_id(int image_id) {
         this.image_id = image_id;
     }
+
     public List<Integer> getPost_id() {
         return post_id;
     }
+
     public void setPost_id(List<Integer> post_id) {
         this.post_id = post_id;
     }
 
-    public String getImage() {
+    public byte[] getImage() {
         return image;
     }
-    public void setImage(String image) {
+
+    public void setImage(byte[] image) {
         this.image = image;
     }
 

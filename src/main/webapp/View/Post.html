@@ -54,10 +54,12 @@
         el: '#post-app',
         data: {
             post: {
+                post_id:1,
                 title: '示例帖子标题',
                 content: '这是一个示例帖子的内容，包含详细的文字描述。',
                 image: 'https://picsum.photos/800/400',
                 publisher: {
+                    user_id: 1,
                     name: '示例发布者',
                     postTime: '2025-04-13 12:00'
                 },
@@ -66,7 +68,7 @@
             },
             comments: [
                 {
-                    id: 1,
+                    comments_id: 1,
                     author: '用户1',
                     text: '这篇帖子很有价值！',
                     showReplyInput: false,
@@ -80,7 +82,7 @@
                     ]
                 },
                 {
-                    id: 2,
+                    comments_id: 2,
                     author: '用户2',
                     text: '写得不错，继续加油！',
                     showReplyInput: false,
@@ -126,6 +128,22 @@
                     comment.showReplyInput = false;
                 }
             }
+        },
+
+        beforeMount() {
+            this.post_id = this.$route.query.post_id;
+            var _this = this;
+            axios.post("/User/FindPost", {"post_id":this.post_id}).then((response) => {
+                _this.post_id = response.data.id;
+                _this.post.likes = response.data.likes;
+                _this.title = response.data.title;
+                _this.content = response.data.content;
+                _this.image = response.data.image;
+                _this.publisher.name = response.data.name;
+                _this.comments = response.data.comments;
+
+
+            })
         }
     });
 </script>
