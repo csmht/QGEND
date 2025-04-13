@@ -1,0 +1,65 @@
+package csmht.Dao.ClassObject;
+
+import com.alibaba.fastjson2.annotation.JSONField;
+import csmht.Dao.UserClass;
+
+public class Post extends UserClass {
+    @JSONField(name="post_id")
+    private int post_id;
+
+    @JSONField(name="title")
+    private String title;
+
+    @JSONField(name="content")
+    private String content;
+
+    @JSONField(name="likes")
+    private int likes;
+
+    @JSONField(name="views")
+    private int views;
+
+
+
+    public int getPost_id() {
+        return post_id;
+    }
+
+    public void setPost_id(int post_id) {
+        this.post_id = post_id;
+    }
+
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public int getLikes() {
+        return likes;
+    }
+
+    public void setLikes(int likes) {
+        this.likes = likes;
+    }
+
+    public int getViews() {
+        return views;
+    }
+
+    public void setViews(int views) {
+        this.views = views;
+    }
+
+}

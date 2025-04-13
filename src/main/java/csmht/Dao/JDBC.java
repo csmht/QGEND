@@ -74,6 +74,17 @@ public class JDBC {
         return ps.executeUpdate();
     }
 
+    /**
+     *
+     * @param conn
+     * @param main
+     * @param key1 changer
+     * @param val1
+     * @param key2 where
+     * @param val2
+     * @return
+     * @throws SQLException
+     */
     public static int update(Connection conn,String main,String[] key1,String[] val1,String[] key2,String[] val2) throws SQLException {
         StringBuilder sql = new StringBuilder("update ");
         sql.append(main);
@@ -99,4 +110,17 @@ public class JDBC {
         return ps.executeUpdate();
 
     }
+
+    public static ResultSet find(Connection conn,String sql,String[] val) throws SQLException {
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        ps = conn.prepareStatement(sql);
+        for(int i =0; i < val.length; i++) {
+            ps.setString(i+1, val[i]);
+        }
+        rs = ps.executeQuery();
+        return rs;
+    }
+
+
 }

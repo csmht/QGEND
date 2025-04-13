@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Objects;
 
 
 @WebFilter("/User/*")
@@ -31,15 +32,25 @@ public class loginFilter implements Filter {
         }
 
         HttpSession sei = request.getSession();
-        String pd = null;
+        String pd = "false";
         try {
-            pd = sei.getAttribute("id").toString();
+            if(sei.getAttribute("id").toString()!=null){
+
+                if(Objects.equals(sei.getAttribute("pass").toString(), "0")){
+                    pd = "true";
+                }else {
+                    pd="pass";
+                }
+
+
+            }
         } catch (Exception e) {
             System.out.println(e.toString());
         }
-        if(pd != null){
+        if(pd.equals("true")){
             filterChain.doFilter(servletRequest, servletResponse);
         }else{
+            servletResponse.getWriter().write(pd);
             request.getRequestDispatcher("/UserLogin/UserLogin.html").forward(servletRequest, servletResponse);
         }
     }

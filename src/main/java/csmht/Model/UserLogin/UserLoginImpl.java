@@ -1,9 +1,10 @@
-package csmht.Model.User;
+package csmht.Model.UserLogin;
 
 import com.alibaba.fastjson2.JSON;
+import csmht.Dao.ClassObject.User;
 import csmht.Dao.JDBC;
 import csmht.Dao.Pool;
-import csmht.Model.UserService;
+import csmht.Model.UserLoginService;
 import csmht.View.UserBaseServlet;
 
 import javax.servlet.annotation.WebServlet;
@@ -18,14 +19,14 @@ import java.sql.SQLException;
 
 
 @WebServlet("/UserIn/*")
-public class UserImpl extends UserBaseServlet implements UserService {
+public class UserLoginImpl extends UserBaseServlet implements UserLoginService {
 
     @Override
     public void UserLogin(HttpServletRequest req, HttpServletResponse res) throws SQLException, InterruptedException, IOException {
 
         BufferedReader one = req.getReader();
         String oneLine = one.readLine();
-        User Json = JSON.parseObject(oneLine, csmht.Model.User.User.class);
+        User Json = JSON.parseObject(oneLine, User.class);
         Connection con = Pool.Pool.getPool();
         String[] a = {"user"};
         String[] b = {};
@@ -36,11 +37,11 @@ public class UserImpl extends UserBaseServlet implements UserService {
             res.getWriter().write("true");
             HttpSession session = req.getSession();
             session.setAttribute("id",rs.getString("id"));
+            session.setAttribute("admin",rs.getString("admin"));
+            session.setAttribute("pass",rs.getString("pass"));
         }else {
             res.getWriter().write("false");
         }
-
-
 
     }
 
@@ -48,7 +49,7 @@ public class UserImpl extends UserBaseServlet implements UserService {
     public void UserRegister(HttpServletRequest req, HttpServletResponse res) throws SQLException, InterruptedException, IOException {
         BufferedReader one = req.getReader();
         String oneLine = one.readLine();
-        User Json = JSON.parseObject(oneLine, csmht.Model.User.User.class);
+        User Json = JSON.parseObject(oneLine, User.class);
         Connection con = Pool.Pool.getPool();
         boolean pd = false;
         try{
