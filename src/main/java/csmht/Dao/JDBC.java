@@ -14,10 +14,11 @@ public class JDBC {
      * @param sub 关联表，第一个为主表列
      * @param key 约束列
      * @param val 约束值
+     * @param sort 末尾排序语句
      * @return
      * @throws SQLException
      */
-    public static ResultSet find(Connection conn,String[] main,String[] sub,String[] key,String[] val) throws SQLException {
+    public static ResultSet find(Connection conn,String[] main,String[] sub,String[] key,String[] val,String sort) throws SQLException {
         StringBuilder sql = new StringBuilder("select ");
         for (int i = 0; i < main.length; i++) {
             sql.append(main[i]).append(".*");
@@ -40,6 +41,8 @@ public class JDBC {
 
             sql.append(key[i]).append(" = ?");
         }
+
+        sql.append(sort);
 
         PreparedStatement ps = conn.prepareStatement(String.valueOf(sql));
         for (int i =0; i < val.length; i++) {

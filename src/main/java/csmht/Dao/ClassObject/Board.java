@@ -31,6 +31,9 @@ public class Board extends UserClass {
     @JSONField(name="post_id")
     private List<Integer> post_id = new ArrayList<>();
 
+    @JSONField(name="likes")
+    private int likes;
+
     public int getBoard_id() {
         return board_id;
     }
@@ -92,6 +95,14 @@ public class Board extends UserClass {
 
     public void setImage(byte[] image) {
         this.image = image;
+    }
+
+    public int getLikes() {
+        return likes;
+    }
+
+    public void setLikes(int likes) {
+        this.likes = likes;
     }
 
 }

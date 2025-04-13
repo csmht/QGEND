@@ -31,8 +31,8 @@ public class UserLoginImpl extends UserBaseServlet implements UserLoginService {
         String[] a = {"user"};
         String[] b = {};
         String[] c = {"id", "password"};
-        String[] d = {Json.getUserID(),Json.getPassword()};
-        ResultSet rs = JDBC.find(con,a,b,c,d);
+        String[] d = {String.valueOf(Json.getUser_id()),Json.getPassword()};
+        ResultSet rs = JDBC.find(con,a,b,c,d,"");
         if(rs.next()) {
             res.getWriter().write("true");
             HttpSession session = req.getSession();
@@ -42,7 +42,7 @@ public class UserLoginImpl extends UserBaseServlet implements UserLoginService {
         }else {
             res.getWriter().write("false");
         }
-
+        Pool.Pool.returnConn(con);
     }
 
     @Override
@@ -57,14 +57,14 @@ public class UserLoginImpl extends UserBaseServlet implements UserLoginService {
             String[] a = {"user"};
             String[] b = {};
             String[] c = {"id","password","email"};
-            String[] d = {Json.getUserID(),Json.getPassword(),Json.getEmail()};
-            ResultSet rs = JDBC.find(con,a,b,c,d);
+            String[] d = {String.valueOf(Json.getUser_id()),Json.getPassword(),Json.getEmail()};
+            ResultSet rs = JDBC.find(con,a,b,c,d,"");
             if(rs.next()) {
                 res.getWriter().write("more");
                 return;
             }
             String[] e = {"id", "password","email","name"};
-            String[] f = {Json.getUserID(),Json.getPassword(),Json.getEmail(),Json.getUserID()};
+            String[] f = {String.valueOf(Json.getUser_id()),Json.getPassword(),Json.getEmail(),String.valueOf(Json.getUser_id())};
             int i = JDBC.add(con,"user",e,f);
             con.commit();
             pd = true;
@@ -72,6 +72,7 @@ public class UserLoginImpl extends UserBaseServlet implements UserLoginService {
             con.rollback();
             e.printStackTrace();
         }finally {
+            Pool.Pool.returnConn(con);
             res.getWriter().write(pd+"");
         }
 

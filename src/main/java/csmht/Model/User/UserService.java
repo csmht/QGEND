@@ -42,7 +42,7 @@ public class UserService extends UserBaseServlet implements csmht.Model.UserServ
         try {
             con.setAutoCommit(false);
 
-            ResultSet rs = JDBC.find(con, new String[]{"user_like"},new String[]{},new String[]{"user_id","post_id"},new String[]{Json.getUser_id()+"",Json.getPost_id()+""});
+            ResultSet rs = JDBC.find(con, new String[]{"user_like"},new String[]{},new String[]{"user_id","post_id"},new String[]{Json.getUser_id()+"",Json.getPost_id()+""},"");
 
             if(!rs.next()) {
                 rs = JDBC.find(con,"SELECT post* FROM post WHERE post_id = '?'",new String[]{Json.getPost_id()+""});
@@ -56,6 +56,8 @@ public class UserService extends UserBaseServlet implements csmht.Model.UserServ
             con.rollback();
             e.printStackTrace();
 //            throw new RuntimeException(e);
+        }finally {
+            Pool.Pool.returnConn(con);
         }
 
 
