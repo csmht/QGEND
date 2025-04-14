@@ -1,4 +1,4 @@
-package csmht.Model;
+package csmht.Model.UserLogin;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

@@ -6,13 +6,11 @@ import csmht.Dao.UserClass;
 public class User extends UserClass {
 
 
-    @JSONField(name = "UserName")
-    private String UserName;
 
     @JSONField(name="PassWord")
     private String password;
 
-    @JSONField(name = "email")
+    @JSONField(name = "Email")
     private String email;
 
     @JSONField(name="admin")
@@ -21,8 +19,6 @@ public class User extends UserClass {
     @JSONField(name="pass")
     private String pass;
 
-    @JSONField(name="image_id")
-    private int image_id;
 
     @JSONField(name="image")
     private byte[] image;
@@ -31,13 +27,7 @@ public class User extends UserClass {
     private String create_time;
 
 
-    public String getUserName() {
-        return UserName;
-    }
 
-    public void setUserName(String userName) {
-        this.UserName = userName;
-    }
 
     public String getPassword() {
         return password;
@@ -62,10 +52,6 @@ public class User extends UserClass {
     public String getPass() {return pass;}
 
     public void setPass(String pass) {this.pass = pass;}
-
-    public int getImage_id() {return image_id;}
-
-    public void setImage_id(int image_id) {this.image_id = image_id;}
 
     public byte[] getImage() {return image;}
 

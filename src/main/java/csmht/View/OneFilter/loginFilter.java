@@ -1,4 +1,4 @@
-package csmht.View.Filter;
+package csmht.View.OneFilter;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
@@ -34,7 +34,7 @@ public class loginFilter implements Filter {
         HttpSession sei = request.getSession();
         String pd = "false";
         try {
-            if(sei.getAttribute("id").toString()!=null){
+            if(sei.getAttribute("id")!=null){
 
                 if(Objects.equals(sei.getAttribute("pass").toString(), "0")){
                     pd = "true";
@@ -50,7 +50,7 @@ public class loginFilter implements Filter {
         if(pd.equals("true")){
             filterChain.doFilter(servletRequest, servletResponse);
         }else{
-            servletResponse.getWriter().write(pd);
+//            servletResponse.getWriter().write(pd);
             request.getRequestDispatcher("/UserLogin/UserLogin.html").forward(servletRequest, servletResponse);
         }
     }

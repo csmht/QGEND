@@ -26,7 +26,7 @@ public class JDBC {
         }
         sql.append(" from ").append(main[0]).append(" ");
         for(int i = 1; i < sub.length; i++) {
-            sql.append(" join ").append(main[i]).append(" on ").append(sub[0]).append(" = ").append(sub[i]);
+            sql.append(" LEFT join ").append(main[i]).append(" on ").append(sub[0]).append(" = ").append(sub[i]);
         }
         sql.append(" ");
 
@@ -71,7 +71,7 @@ public class JDBC {
         }
         sql.append(") values (");
         for(int i =0; i < val.length; i++) {
-            sql.append(val[i]);
+            sql.append("'").append(val[i]).append("'");
             if(i!=val.length-1) sql.append(",");
         }
         sql.append(")");

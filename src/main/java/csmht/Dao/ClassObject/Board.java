@@ -22,8 +22,6 @@ public class Board extends UserClass {
     @JSONField(name="create_time")
     private String create_time;
 
-    @JSONField(name="image_id")
-    private int image_id;
 
     @JSONField(name="image")
     private byte[] image;
@@ -71,14 +69,6 @@ public class Board extends UserClass {
 
     public void setCreate_time(String create_time) {
         this.create_time = create_time;
-    }
-
-    public int getImage_id() {
-        return image_id;
-    }
-
-    public void setImage_id(int image_id) {
-        this.image_id = image_id;
     }
 
     public List<Integer> getPost_id() {
