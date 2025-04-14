@@ -27,14 +27,15 @@
             </div>
             <div class="post" v-for="post in filteredPosts" :key="post.id">
                 <h3>{{ post.title }}</h3>
-                <p>作者: {{ post.author }}</p>
-                <p>浏览量: {{ post.views }}</p>
+                <p>作者: {{ post.UserName }}</p>
+                <p>{{post.content | truncate}}</p>
                 <p>点赞量: {{ post.likes }}</p>
+                <h5>发表时间：{{post.create_time}}</h5>
             </div>
         </div>
-        <div class="boards-section">
+        <div  class="boards-section">
             <h2>热门板块</h2>
-            <div class="board" v-for="i in filteredBoards" :key="i.board_id">
+            <div class="board" v-for="i in filteredBoards" :key="i.board_id" @click="InBoard(i.board_id)">
                 <h2>{{ i.title }}</h2>
                 <h4>简介：{{i.content | truncate}}</h4>
                 <p>关注人数: {{ i.likes }}</p>
@@ -46,38 +47,8 @@
     new Vue({
         el: '#app',
         data: {
-            latestPosts: [
-                {
-                    id: 1,
-                    title: '最新帖子1',
-                    author: '用户1',
-                    views: 100,
-                    likes: 20
-                },
-                {
-                    id: 2,
-                    title: '最新帖子2',
-                    author: '用户2',
-                    views: 80,
-                    likes: 15
-                }
-            ],
-            popularPosts: [
-                {
-                    id: 3,
-                    title: '热门帖子1',
-                    author: '用户3',
-                    views: 500,
-                    likes: 100
-                },
-                {
-                    id: 4,
-                    title: '热门帖子2',
-                    author: '用户4',
-                    views: 400,
-                    likes: 80
-                }
-            ],
+            NewPost:[],
+            HotPost:[],
             board: [],
             isLatestPosts: true,
             currentPosts: [],
@@ -86,37 +57,58 @@
             filteredBoards: []
         },
         created() {
-            this.currentPosts = this.latestPosts;
-            this.filteredPosts = this.latestPosts;
+            this.currentPosts = this.NewPost;
+            this.filteredPosts = this.NewPost;
         },
         methods: {
             showLatestPosts() {
                 this.isLatestPosts = true;
-                this.currentPosts = this.latestPosts;
-                this.filteredPosts = this.latestPosts;
+                this.currentPosts = this.NewPost;
+                this.filteredPosts = this.NewPost;
             },
             showPopularPosts() {
                 this.isLatestPosts = false;
-                this.currentPosts = this.popularPosts;
-                this.filteredPosts = this.popularPosts;
+                this.currentPosts = this.HotPost;
+                this.filteredPosts = this.HotPost;
             },
             search() {
-                window.open(`../View/Seek.html&find=${this.find}}}`, '_self');
+                window.location.replace(`../View/Seek.html&find=${this.find}}}`);
+            },
+            InBoard(board_id) {
+                window.location.replace("../View/Board.html?boardID=" + board_id);
             }
         },
         beforeMount() {
             const _this = this;
-            axios.post("/User/Find/UserManyBoardNew",).then(res => {
+            axios.post("/User/Find/UserManyBoardHot",).then(res => {
                 const one = res.data;
                 for (let i = 0; i < one.length; i++) {
                     _this.board.push(one[i]);
                 }
                 _this.filteredBoards = _this.board;
             })
+
+            axios.post("/User/Find/UserManyPostHot").then(res => {
+                const one = res.data;
+                for (let i = 0; i < one.length; i++) {
+                    _this.HotPost.push(one[i]);
+                }
+            })
+
+            axios.post("/User/Find/UserManyPostNew").then(res => {
+                const one = res.data;
+                for (let i = 0; i < one.length; i++) {
+                    _this.NewPost.push(one[i]);
+                }
+            })
+
         },
         filters: {
             truncate(value) {
+                if (typeof value === 'string') {
                 return value.length > 20? value.slice(0, 20) + "..." : value;
+            }
+                return '';
             }
         }
 

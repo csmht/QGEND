@@ -62,7 +62,7 @@ public interface FindDataServlet {
      * @param req
      * @param resp
      */
-    public void UserManyPostHot(HttpServletRequest req, HttpServletResponse resp) throws IOException;
+    public void UserManyPostHot(HttpServletRequest req, HttpServletResponse resp) throws IOException, SQLException, InterruptedException;
 
     /**
      * 通过用户查找多个帖子
@@ -71,7 +71,7 @@ public interface FindDataServlet {
      * @param req
      * @param resp
      */
-    public void UserManyPostNew(HttpServletRequest req, HttpServletResponse resp);
+    public void UserManyPostNew(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 
     /**
      * 通过标题查找多个帖子
@@ -80,7 +80,7 @@ public interface FindDataServlet {
      * @param req
      * @param resp
      */
-    public void TitleManyPostHot(HttpServletRequest req, HttpServletResponse resp) throws IOException;
+    public void TitleManyPostHot(HttpServletRequest req, HttpServletResponse resp) throws IOException, SQLException, InterruptedException;
 
     /**
      * 通过标题查找多个帖子
@@ -89,7 +89,7 @@ public interface FindDataServlet {
      * @param req
      * @param resp
      */
-    public void TitleManyPostNew(HttpServletRequest req, HttpServletResponse resp);
+    public void TitleManyPostNew(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 
     /**
      * 查找单个帖子
@@ -97,7 +97,7 @@ public interface FindDataServlet {
      * @param req
      * @param resp
      */
-    public void OnePost(HttpServletRequest req, HttpServletResponse resp);
+    public void OnePost(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 
     /**
      * 查找多个用户，默认热度排序

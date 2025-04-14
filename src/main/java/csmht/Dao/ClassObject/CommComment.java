@@ -3,7 +3,7 @@ package csmht.Dao.ClassObject;
 import com.alibaba.fastjson2.annotation.JSONField;
 import csmht.Dao.UserClass;
 
-public class UserCommComm extends UserClass {
+public class CommComment extends UserClass {
 
     @JSONField(name="commcomm_id")
     private int commComm_id;

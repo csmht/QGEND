@@ -53,6 +53,7 @@
     new Vue({
         el: '#post-app',
         data: {
+            post:[],
             post: {
                 post_id:1,
                 title: '示例帖子标题',
@@ -131,18 +132,11 @@
         },
 
         beforeMount() {
-            this.post_id = this.$route.query.post_id;
+            const urlParams = new URLSearchParams(window.location.search);
+            this.post_id = urlParams.get('postID');
             var _this = this;
             axios.post("/User/FindPost", {"post_id":this.post_id}).then((response) => {
-                _this.post_id = response.data.id;
-                _this.post.likes = response.data.likes;
-                _this.title = response.data.title;
-                _this.content = response.data.content;
-                _this.image = response.data.image;
-                _this.publisher.name = response.data.name;
-                _this.comments = response.data.comments;
-
-
+               _this.posts = response.data;
             })
         }
     });

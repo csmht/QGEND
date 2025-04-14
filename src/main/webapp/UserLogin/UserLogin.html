@@ -86,7 +86,7 @@
               }).then((res) => {
                 if(res.status == 200){
                   if(res.data === true){
-                    window.location.assign("../User/UserMeun.html ");
+                    window.location.replace("../User/UserMeun.html");
                   }else{
                     alert("登录失败");
                   }

@@ -8,7 +8,8 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class Find {
@@ -51,6 +52,7 @@ public class Find {
             post.setUser_id(rs.getInt("user_id"));
             post.setLikes(rs.getInt("likes"));
             post.setViews(rs.getInt("views"));
+            post.setCreate_time(rs.getString("create_time"));
         }
 
         return post;
@@ -73,7 +75,7 @@ public class Find {
         ResultSet rs = null;
 
         String[] main={"board","user"};
-        String[] sub={"board.user_id","user_id"};
+        String[] sub={"board.user_id","user.user_id"};
         String[] key={key0};
         String[] value={value0};
         rs = JDBC.find(con,main,sub,key,value,sort);
@@ -154,8 +156,8 @@ public class Find {
      * @return
      * @throws SQLException
      */
-    static public UserCommentPost FindPostComment(Connection con,String key0,String value0,String sort) throws SQLException, InterruptedException {
-        UserCommentPost comment = new UserCommentPost();
+    static public List<Comment> FindPostComment(Connection con, String key0, String value0, String sort) throws SQLException, InterruptedException {
+        List<Comment> comment = new ArrayList<>();
         ResultSet rs = null;
 
         if(sort==null|| sort.isEmpty()){
@@ -170,20 +172,31 @@ public class Find {
         rs = JDBC.find(con,main,sub,key,value,sort);
 
         if(rs.next()){
-            comment.setUserName(rs.getString("user.name"));
-            comment.setUser_id(rs.getInt("user_id"));
-            comment.setPost_Id(rs.getInt("post_id"));
-            comment.setComment(rs.getString("comment"));
-            comment.setComment_Id(rs.getInt("comment_id"));
-            comment.setCreate_time(rs.getString("create_time"));
-            comment.setLikes(rs.getInt("likes"));
+            Comment one = new Comment();
+            one.setUserName(rs.getString("user.name"));
+            one.setUser_id(rs.getInt("user_id"));
+            one.setPost_Id(rs.getInt("post_id"));
+            one.setContent(rs.getString("comment"));
+            one.setComment_Id(rs.getInt("comment_id"));
+            one.setCreate_time(rs.getString("create_time"));
+            one.setLikes(rs.getInt("likes"));
+            comment.add(one);
         }
         rs.close();
         return comment;
     }
 
-    static public UserCommComm FindCommComment(Connection con,int comm_id,String sort) throws SQLException, InterruptedException {
-        UserCommComm userCommComm = new UserCommComm();
+    /**
+     * 寻找评论评论
+     * @param con
+     * @param comm_id
+     * @param sort
+     * @return
+     * @throws SQLException
+     * @throws InterruptedException
+     */
+    static public CommComment FindCommComment(Connection con, int comm_id, String sort) throws SQLException, InterruptedException {
+        CommComment commComment = new CommComment();
         ResultSet rs = null;
 
         if(sort==null|| sort.isEmpty()){
@@ -197,16 +210,16 @@ public class Find {
         rs = JDBC.find(con,main,sub,key,value,sort);
 
         if(rs.next()){
-            userCommComm.setUserName(rs.getString("user.name"));
-            userCommComm.setCommComm_id(rs.getInt("commcomm_id"));
-            userCommComm.setUser_id(rs.getInt("user_id"));
-            userCommComm.setComment(rs.getString("comment"));
-            userCommComm.setComm_id(rs.getInt("comment_id"));
-            userCommComm.setCreate_time(rs.getString("create_time"));
-            userCommComm.setLikes(rs.getInt("likes"));
+            commComment.setUserName(rs.getString("user.name"));
+            commComment.setCommComm_id(rs.getInt("commcomm_id"));
+            commComment.setUser_id(rs.getInt("user_id"));
+            commComment.setComment(rs.getString("comment"));
+            commComment.setComm_id(rs.getInt("comment_id"));
+            commComment.setCreate_time(rs.getString("create_time"));
+            commComment.setLikes(rs.getInt("likes"));
         }
         rs.close();
-        return userCommComm;
+        return commComment;
     }
 
 }

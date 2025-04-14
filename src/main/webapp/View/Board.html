@@ -15,22 +15,23 @@
 <div id="module-app">
     <div class="module-container">
         <div class="module-info">
-            <h1>{{ module.title }}</h1>
-            <p>创建者: {{ module.creator }}</p>
-            <p>关注人数: {{ module.followers }}</p>
+            <h1>{{ board.title }}</h1>
+            <p>创建者: {{ board.creator }}</p>
+            <p>关注人数: {{ board.likes }}</p>
         </div>
         <div class="module-actions">
             <button @click="followModule">关注 ({{ module.followers }})</button>
             <button @click="reportModule">举报</button>
         </div>
         <div class="posts-list">
-            <h2>模块内帖子 ({{ module.posts.length }})</h2>
-            <div class="post" v-for="post in module.posts" :key="post.id">
+            <h2>模块内帖子 ()</h2>
+            <div class="post" v-for="post in board.post" :key="post.id">
                 <h3>{{ post.title }}</h3>
-                <p>发帖人: {{ post.publisher }}</p>
+                <p>发帖人: {{ post.user_id }}</p>
                 <p>喜欢人数: {{ post.likes }}</p>
-                <p>收藏人数: {{ post.collects }}</p>
-                <p class="post-content-preview">{{ post.content.slice(0, 100) }}...</p>
+
+                <p class="post-content-preview">{{ post.content | truncate}}...</p>
+                <h5>发帖时间：{{post.create_time}}</h5>
             </div>
         </div>
     </div>
@@ -40,29 +41,21 @@
         el: '#module-app',
         data: {
             module: {
-                borad_id:1,
-                title: '示例模块标题',
+                board_id:'0',
+                title: '0',
+                user_id: '0',
                 creator: '示例创建者',
                 followers: 10,
-                posts: [
-                    {
-                        post_id: 1,
-                        title: '帖子标题1',
-                        publisher: '用户1',
-                        likes: 20,
-                        collects: 15,
-                        content: '这是帖子1的详细内容，包含很多有用的信息。这是帖子1的详细内容，包含很多有用的信息。这是帖子1的详细内容，包含很多有用的信息。'
-                    },
-                    {
-                        post_id: 2,
-                        title: '帖子标题2',
-                        publisher: '用户2',
-                        likes: 15,
-                        collects: 10,
-                        content: '这是帖子2的详细内容，同样有很多有价值的信息。这是帖子2的详细内容，同样有很多有价值的信息。这是帖子2的详细内容，同样有很多有价值的信息。'
+                create_time: '0',
+                post: [
+                    {"id":-1,
+                        "title":"000",
+                        "user_id":"null",
+                        "likes":"0"
                     }
                 ]
-            }
+            },
+            board: {}
         },
         methods: {
             followModule() {
@@ -73,16 +66,20 @@
             }
         },
         beforeMount() {
-            this.borad_id = this.$route.query.borad_id;
+            const urlParams = new URLSearchParams(window.location.search);
+            this.board_id = urlParams.get('boardID');
             var _this = this;
-            axios.post("/User/FindPost",{"board-id":this.borad_id}).then((response) => {
-                _this.borad_id = response.data.borad_id;
-                _this.title = response.data.title;
-                _this.creator = response.data.creator;
-                _this.followers = response.data.followers;
-
-
+            axios.post("/User/Find/OneBoard",{"board_id":this.board_id}).then((response) => {
+                _this.board = response.data;
             })
+        },
+        filters: {
+            truncate(value) {
+                if (typeof value === 'string') {
+                return value.length > 20? value.slice(0, 20) + "..." : value;
+            }
+                return '';
+            }
         }
     });
 </script>

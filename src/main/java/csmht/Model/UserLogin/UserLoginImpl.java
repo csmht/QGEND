@@ -39,7 +39,6 @@ public class UserLoginImpl extends UserBaseServlet implements UserLoginService {
             HttpSession session = req.getSession();
             session.setAttribute("id",rs.getString("user_id"));
             session.setAttribute("admin",rs.getString("admin"));
-            session.setAttribute("pass",rs.getString("pass"));
         }else {
             res.getWriter().write("false");
         }

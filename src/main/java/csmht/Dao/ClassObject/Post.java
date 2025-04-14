@@ -3,6 +3,9 @@ package csmht.Dao.ClassObject;
 import com.alibaba.fastjson2.annotation.JSONField;
 import csmht.Dao.UserClass;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class Post extends UserClass {
 
@@ -28,7 +31,8 @@ public class Post extends UserClass {
     @JSONField(name="board_id")
     private int board_id = -1;
 
-
+    @JSONField(name="PostComment")
+    private List<Comment> comments = new ArrayList<>();
 
     public int getPost_id() {
         return post_id;
@@ -86,5 +90,15 @@ public class Post extends UserClass {
         this.board_id = board_id;
     }
 
+    public List<Comment> getComments() {
+        return comments;
+    }
 
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
+    }
+
+    public void addComment(Comment comment) {
+        comments.add(comment);
+    }
 }

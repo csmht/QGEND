@@ -11,11 +11,9 @@
 </head>
 <body>
 <div id="app">
-    <!-- 头部 -->
     <header>
         <h1>用户主页</h1>
     </header>
-    <!-- 侧边栏 -->
     <aside>
         <button @click="openHome()">查看热门帖子</button>
         <button @click="showPage('profile')">个人信息中心</button>
@@ -103,17 +101,20 @@
             },
 
             openHome() {
-                window.open("../View/Home.html", "_blank");
+                window.location.replace("../View/Home.html");
             },
 
             showPost(post_id) {
-                window.open(`../View/Post.html?post_id=${post_id}`, "_blank");
+                window.open(`../View/Post.html?post_id=${post_id}`, "_self");
             },
 
         },
         filters: {
             truncate(value) {
-                return value.length > 20? value.slice(0, 20) + "..." : value;
+                if (typeof value === 'string') {
+                    return value.length > 20? value.slice(0, 20) + "..." : value;
+                }
+                return '';
             }
         }
     });

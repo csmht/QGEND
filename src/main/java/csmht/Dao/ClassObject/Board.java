@@ -22,12 +22,11 @@ public class Board extends UserClass {
     @JSONField(name="create_time")
     private String create_time;
 
-
     @JSONField(name="image")
     private byte[] image;
 
-    @JSONField(name="post_id")
-    private List<Integer> post_id = new ArrayList<>();
+    @JSONField(name="post")
+    private List<Post> post = new ArrayList<>();
 
     @JSONField(name="likes")
     private int likes;
@@ -71,12 +70,16 @@ public class Board extends UserClass {
         this.create_time = create_time;
     }
 
-    public List<Integer> getPost_id() {
-        return post_id;
+    public void setPost(List<Post> post) {
+        this.post = post;
     }
 
-    public void setPost_id(List<Integer> post_id) {
-        this.post_id = post_id;
+    public void addPost(Post post) {
+        this.post.add(post);
+    }
+
+    public List<Post> getPost() {
+        return post;
     }
 
     public byte[] getImage() {

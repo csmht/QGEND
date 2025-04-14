@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 
-@WebFilter("/User/*")
+@WebFilter(urlPatterns = {"/User/*","/View/*"})
 public class loginFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -35,15 +35,8 @@ public class loginFilter implements Filter {
         String pd = "false";
         try {
             if(sei.getAttribute("id")!=null){
-
-                if(Objects.equals(sei.getAttribute("pass").toString(), "0")){
                     pd = "true";
-                }else {
-                    pd="pass";
-                }
-
-
-            }
+            }else{pd="pass";}
         } catch (Exception e) {
             System.out.println(e.toString());
         }
