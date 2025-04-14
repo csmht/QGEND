@@ -34,7 +34,7 @@ public class Pool {
 
 
         Timer timer = new Timer();
-        timer.schedule(new connInspect(), 0, 3*1000);
+        timer.schedule(new connInspect(), 0, 1000);
     }
 
     public synchronized Connection getPool() throws SQLException, InterruptedException {

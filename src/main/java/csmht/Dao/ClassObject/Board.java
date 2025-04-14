@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Board extends UserClass {
     @JSONField(name="board_id")
-    private int board_id;
+    private int board_id = -1;
 
     @JSONField(name="title")
     private String title;

@@ -8,7 +8,7 @@ public class Post extends UserClass {
 
 
     @JSONField(name="post_id")
-    private int post_id;
+    private int post_id = -1;
 
     @JSONField(name="title")
     private String title;
@@ -26,7 +26,7 @@ public class Post extends UserClass {
     private String create_time;
 
     @JSONField(name="board_id")
-    private int board_id;
+    private int board_id = -1;
 
 
 

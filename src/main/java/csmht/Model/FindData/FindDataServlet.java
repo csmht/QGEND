@@ -37,14 +37,14 @@ public interface FindDataServlet {
      * @param req
      * @param resp
      */
-    public void NameManyBoardNew(HttpServletRequest req, HttpServletResponse resp);
+    public void NameManyBoardNew(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 
     /**
      * 查找单个模块
      * @param req
      * @param resp
      */
-    public void OneBoard(HttpServletRequest req, HttpServletResponse resp);
+    public void OneBoard(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 
     /**
      * 查找多个帖子

@@ -12,6 +12,7 @@ public class UserBaseServlet extends HttpServlet {
     @Override
     public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
+        res.setCharacterEncoding("UTF-8");
         String requestURI = req.getRequestURI();
         int index = requestURI.lastIndexOf('/');
         String methodName = requestURI.substring(index+1);

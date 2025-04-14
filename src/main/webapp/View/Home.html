@@ -14,13 +14,18 @@
 
 <body>
 <div id="app">
+    <!-- 添加搜索框 -->
+    <div class="search-box">
+        <input type="text" v-model="find" placeholder="搜索帖子或板块">
+        <button @click="search()">搜索</button>
+    </div>
     <div class="container">
         <div class="posts-section">
             <div class="toggle-buttons">
                 <button :class="{ active: isLatestPosts }" @click="showLatestPosts">最新帖子</button>
                 <button :class="{ active:!isLatestPosts }" @click="showPopularPosts">热门帖子</button>
             </div>
-            <div class="post" v-for="post in currentPosts" :key="post.id">
+            <div class="post" v-for="post in filteredPosts" :key="post.id">
                 <h3>{{ post.title }}</h3>
                 <p>作者: {{ post.author }}</p>
                 <p>浏览量: {{ post.views }}</p>
@@ -29,9 +34,10 @@
         </div>
         <div class="boards-section">
             <h2>热门板块</h2>
-            <div class="board" v-for="board in popularBoards" :key="board.id">
-                <h3>{{ board.name }}</h3>
-                <p>帖子数量: {{ board.postCount }}</p>
+            <div class="board" v-for="i in filteredBoards" :key="i.board_id">
+                <h2>{{ i.title }}</h2>
+                <h4>简介：{{i.content | truncate}}</h4>
+                <p>关注人数: {{ i.likes }}</p>
             </div>
         </div>
     </div>
@@ -72,37 +78,46 @@
                     likes: 80
                 }
             ],
-            popularBoards: [
-                {
-                    id: 1,
-                    name: '热门板块1',
-                    postCount: 200
-                },
-                {
-                    id: 2,
-                    name: '热门板块2',
-                    postCount: 150
-                }
-            ],
+            board: [],
             isLatestPosts: true,
-            currentPosts: []
+            currentPosts: [],
+            find:'',
+            filteredPosts: [],
+            filteredBoards: []
         },
         created() {
             this.currentPosts = this.latestPosts;
+            this.filteredPosts = this.latestPosts;
         },
         methods: {
             showLatestPosts() {
                 this.isLatestPosts = true;
                 this.currentPosts = this.latestPosts;
+                this.filteredPosts = this.latestPosts;
             },
             showPopularPosts() {
                 this.isLatestPosts = false;
                 this.currentPosts = this.popularPosts;
+                this.filteredPosts = this.popularPosts;
+            },
+            search() {
+                window.open(`../View/Seek.html&find=${this.find}}}`, '_self');
             }
         },
         beforeMount() {
-            var _this = this;
-            axios.post()
+            const _this = this;
+            axios.post("/User/Find/UserManyBoardNew",).then(res => {
+                const one = res.data;
+                for (let i = 0; i < one.length; i++) {
+                    _this.board.push(one[i]);
+                }
+                _this.filteredBoards = _this.board;
+            })
+        },
+        filters: {
+            truncate(value) {
+                return value.length > 20? value.slice(0, 20) + "..." : value;
+            }
         }
 
     });
