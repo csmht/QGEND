@@ -34,8 +34,8 @@ public class Find {
 
 
             // id find
-            String[] main={"post"};
-            String[] sub={};
+            String[] main={"post","user"};
+            String[] sub={"post.user_id","user.user_id"};
             String[] key={key0};
             String[] value={value0};
             rs = JDBC.find(con,main,sub,key,value,sort);
@@ -43,6 +43,7 @@ public class Find {
 
 
         if(rs.next()){
+            post.setUserName(rs.getString("user.name"));
             post.setPost_id(rs.getInt("post_id"));
             post.setTitle(rs.getString("title"));
             post.setContent(rs.getString("content"));
@@ -71,13 +72,13 @@ public class Find {
         Board board = new Board();
         ResultSet rs = null;
 
-        String[] main={"board"};
-        String[] sub={};
+        String[] main={"board","user"};
+        String[] sub={"board.user_id","user_id"};
         String[] key={key0};
         String[] value={value0};
         rs = JDBC.find(con,main,sub,key,value,sort);
         if(rs.next()){
-
+            board.setUserName(rs.getString("user.name"));
             board.setBoard_id(rs.getInt("board_id"));
             board.setTitle(rs.getString("title"));
             board.setContent(rs.getString("content"));
@@ -140,9 +141,6 @@ public class Find {
             }
 
 
-
-
-
         }
         rs.close();
         return user;
@@ -164,14 +162,15 @@ public class Find {
             sort = "";
         }
 
-        String[] main={"comment"};
-        String[] sub={};
+        String[] main={"comment","user"};
+        String[] sub={"comment.user_id","user.user_id"};
         String[] key={key0};
         String[] value={value0};
 
         rs = JDBC.find(con,main,sub,key,value,sort);
 
         if(rs.next()){
+            comment.setUserName(rs.getString("user.name"));
             comment.setUser_id(rs.getInt("user_id"));
             comment.setPost_Id(rs.getInt("post_id"));
             comment.setComment(rs.getString("comment"));
@@ -191,13 +190,14 @@ public class Find {
             sort = "";
         }
 
-        String[] main={"comment_comment"};
-        String[] sub={};
+        String[] main={"comment_comment","user"};
+        String[] sub={"comment_comment.user_id","user.user_id"};
         String[] key={"comment_id"};
         String[] value={String.valueOf(comm_id)};
         rs = JDBC.find(con,main,sub,key,value,sort);
 
         if(rs.next()){
+            userCommComm.setUserName(rs.getString("user.name"));
             userCommComm.setCommComm_id(rs.getInt("commcomm_id"));
             userCommComm.setUser_id(rs.getInt("user_id"));
             userCommComm.setComment(rs.getString("comment"));

@@ -2,6 +2,7 @@ package csmht.Model.FindData;
 
 import com.alibaba.fastjson2.JSON;
 import csmht.Dao.ClassObject.Board;
+import csmht.Dao.ClassObject.Post;
 import csmht.Dao.JDBC;
 import csmht.Dao.Pool;
 import csmht.View.UserBaseServlet;
@@ -95,14 +96,12 @@ public class FindDataImpl extends UserBaseServlet implements FindDataServlet {
     }
 
     @Override
-    public void UserManyBoardHot(HttpServletRequest req, HttpServletResponse resp) throws
-            IOException, SQLException, InterruptedException {
+    public void UserManyBoardHot(HttpServletRequest req, HttpServletResponse resp) throws IOException, SQLException, InterruptedException {
         UserManyBoar(req, resp, Hot);
     }
 
     @Override
-    public void UserManyBoardNew(HttpServletRequest req, HttpServletResponse resp) throws
-            SQLException, IOException, InterruptedException {
+    public void UserManyBoardNew(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
         UserManyBoar(req, resp, New);
     }
 
@@ -118,14 +117,87 @@ public class FindDataImpl extends UserBaseServlet implements FindDataServlet {
         NameManyBoar(req, resp, New);
     }
 
+    private void Post(HttpServletRequest req, HttpServletResponse resp ,String key0, String sort) throws SQLException, IOException, InterruptedException {
+        BufferedReader one = req.getReader();
+        String oneLine = one.readLine();
+        Post Json = JSON.parseObject(oneLine, Post.class);
+        Connection con = Pool.Pool.getPool();
+
+        List<Post> post = new ArrayList<Post>();
+        ResultSet rs = null;
+        try {
+            con.setAutoCommit(false);
+
+            String[] main = {"post", "user"};
+            String[] hot = {"post.user_id", "user.user_id"};
+
+
+            String[] key = null;
+            String[] value = null;
+
+            if (Json == null || Json.getUserName() == null) {
+                key = new String[]{};
+                value = new String[]{};
+            } else if (key0.equals("title")) {
+                value = new String[]{Json.getTitle()};
+            } else if (key0.equals("user.name")) {
+                value = new String[]{String.valueOf(Json.getUser_id())};
+            } else if (key0.equals("post_id")) {
+                value = new String[]{String.valueOf(Json.getPost_id())};
+            } else {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+
+            rs = JDBC.find(con, main, hot, key, value, sort);
+
+            while (rs.next()) {
+                Post tow = new Post();
+                tow = csmht.Dao.Find.FindPost(con, "post_id", rs.getString("post_id"), sort);
+                post.add(tow);
+            }
+
+            con.commit();
+        } catch (Exception e) {
+            con.rollback();
+            e.printStackTrace();
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+        }
+
+        String json = JSON.toJSONString(post);
+        PrintWriter writer = resp.getWriter();
+        writer.write(json);
+        writer.close();
+    }
+
+    private void TitleManyPost(HttpServletRequest req, HttpServletResponse resp,String sort) throws IOException, SQLException, InterruptedException {
+        Post(req, resp, "title", sort);
+    }
+
+    private void UserManyPost(HttpServletRequest req, HttpServletResponse resp, String sort) throws IOException, SQLException, InterruptedException {
+        Post(req,resp,"user.name", sort);
+    }
 
     @Override
-    public void ManyPostHot(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void UserManyPostHot(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
     }
 
     @Override
-    public void ManyPostNew(HttpServletRequest req, HttpServletResponse resp) {
+    public void UserManyPostNew(HttpServletRequest req, HttpServletResponse resp) {
+
+    }
+
+    @Override
+    public void TitleManyPostHot(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+
+    }
+
+    @Override
+    public void TitleManyPostNew(HttpServletRequest req, HttpServletResponse resp) {
 
     }
 

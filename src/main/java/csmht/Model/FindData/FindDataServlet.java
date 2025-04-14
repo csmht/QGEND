@@ -56,22 +56,40 @@ public interface FindDataServlet {
     public void OneBoard(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 
     /**
-     * 查找多个帖子
+     * 通过用户查找多个帖子
      * 热度排序
      *
      * @param req
      * @param resp
      */
-    public void ManyPostHot(HttpServletRequest req, HttpServletResponse resp) throws IOException;
+    public void UserManyPostHot(HttpServletRequest req, HttpServletResponse resp) throws IOException;
 
     /**
-     * 查找多个帖子
+     * 通过用户查找多个帖子
      * 时间排序
      *
      * @param req
      * @param resp
      */
-    public void ManyPostNew(HttpServletRequest req, HttpServletResponse resp);
+    public void UserManyPostNew(HttpServletRequest req, HttpServletResponse resp);
+
+    /**
+     * 通过标题查找多个帖子
+     * 热度排序
+     *
+     * @param req
+     * @param resp
+     */
+    public void TitleManyPostHot(HttpServletRequest req, HttpServletResponse resp) throws IOException;
+
+    /**
+     * 通过标题查找多个帖子
+     * 时间排序
+     *
+     * @param req
+     * @param resp
+     */
+    public void TitleManyPostNew(HttpServletRequest req, HttpServletResponse resp);
 
     /**
      * 查找单个帖子
