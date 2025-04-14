@@ -24,17 +24,9 @@ import static csmht.Dao.Constant.New;
 
 @WebServlet("/User/Find/*")
 public class FindDataImpl extends UserBaseServlet implements FindDataServlet {
-    @Override
-    public void UserManyBoardHot(HttpServletRequest req, HttpServletResponse resp) throws IOException, SQLException, InterruptedException {
-        UserManyBoar(req,resp, Hot);
-    }
 
-    @Override
-    public void UserManyBoardNew(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
-        UserManyBoar(req,resp, New);
-    }
 
-    private void UserManyBoar(HttpServletRequest req,HttpServletResponse resp, String aNew) throws IOException, SQLException, InterruptedException {
+    private void Boar(HttpServletRequest req, HttpServletResponse resp, String key0, String sort) throws IOException, SQLException, InterruptedException {
         BufferedReader one = req.getReader();
         String oneLine = one.readLine();
         Board Json = JSON.parseObject(oneLine, Board.class);
@@ -42,37 +34,42 @@ public class FindDataImpl extends UserBaseServlet implements FindDataServlet {
 
         List<Board> board = new ArrayList<Board>();
         ResultSet rs = null;
-        try{
+        try {
             con.setAutoCommit(false);
 
-            String[] main={"board","user"};
-            String[] hot={"board.user_id","user.user_id"};
+            String[] main = {"board", "user"};
+            String[] hot = {"board.user_id", "user.user_id"};
 
 
-            String[] key;
-            String[] value;
+            String[] key = null;
+            String[] value = null;
 
-            if(Json==null||Json.getUserName()==null){
+            if (Json == null || Json.getUserName() == null) {
                 key = new String[]{};
                 value = new String[]{};
-            }else {
-                key=new String[] {"user.name"};
-                value=new String[] {Json.getUserName()};
+            } else if (key0.equals("title")) {
+                value = new String[]{Json.getTitle()};
+            } else if (key0.equals("user.name")) {
+                value = new String[]{Json.getUserName()};
+            } else if (key0.equals("board_id")) {
+                value = new String[]{String.valueOf(Json.getBoard_id())};
+            } else {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             }
 
-            rs = JDBC.find(con,main,hot,key,value,aNew);
+            rs = JDBC.find(con, main, hot, key, value, sort);
 
-            while(rs.next()){
+            while (rs.next()) {
                 Board tow = new Board();
-                tow = csmht.Dao.Find.FindBoard(con,"board_id",rs.getString("board_id"),aNew);
+                tow = csmht.Dao.Find.FindBoard(con, "board_id", rs.getString("board_id"), sort);
                 board.add(tow);
             }
 
             con.commit();
-        }catch (Exception e){
+        } catch (Exception e) {
             con.rollback();
             e.printStackTrace();
-        }finally {
+        } finally {
             if (rs != null) {
                 rs.close();
             }
@@ -82,126 +79,48 @@ public class FindDataImpl extends UserBaseServlet implements FindDataServlet {
         PrintWriter writer = resp.getWriter();
         writer.write(json);
         writer.close();
-
     }
+
+    private void UserManyBoar(HttpServletRequest req, HttpServletResponse resp, String aNew) throws IOException, SQLException, InterruptedException {
+        Boar(req, resp, "user.name", aNew);
+    }
+
+    private void NameManyBoar(HttpServletRequest req, HttpServletResponse resp, String hot2) throws IOException, SQLException, InterruptedException {
+        Boar(req, resp, "title", hot2);
+    }
+
+    @Override
+    public void OneBoard(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+        Boar(req, resp, "board_id", Hot);
+    }
+
+    @Override
+    public void UserManyBoardHot(HttpServletRequest req, HttpServletResponse resp) throws
+            IOException, SQLException, InterruptedException {
+        UserManyBoar(req, resp, Hot);
+    }
+
+    @Override
+    public void UserManyBoardNew(HttpServletRequest req, HttpServletResponse resp) throws
+            SQLException, IOException, InterruptedException {
+        UserManyBoar(req, resp, New);
+    }
+
 
     @Override
     public void NameManyBoardHot(HttpServletRequest req, HttpServletResponse resp) throws IOException, SQLException, InterruptedException {
         NameManyBoar(req, resp, Hot);
     }
 
-    private void NameManyBoar(HttpServletRequest req, HttpServletResponse resp, String hot2) throws IOException, SQLException, InterruptedException {
-        BufferedReader one = req.getReader();
-        String oneLine = one.readLine();
-        Board Json = JSON.parseObject(oneLine, Board.class);
-        Connection con = Pool.Pool.getPool();
-
-        List<Board> board = new ArrayList<Board>();
-        ResultSet rs = null;
-        try{
-            con.setAutoCommit(false);
-
-            String[] main={"board","user"};
-            String[] hot={"board.user_id","user.user_id"};
-
-
-            String[] key;
-            String[] value;
-
-            if(Json==null||Json.getTitle()==null){
-                key = new String[]{};
-                value = new String[]{};
-            }else {
-                key=new String[] {"title"};
-                value=new String[] {Json.getTitle()};
-            }
-
-            rs = JDBC.find(con,main,hot,key,value, hot2);
-
-            while(rs.next()){
-                Board tow = new Board();
-                tow = csmht.Dao.Find.FindBoard(con,"board_id",rs.getString("board_id"), hot2);
-                board.add(tow);
-            }
-
-            con.commit();
-        }catch (Exception e){
-            con.rollback();
-            e.printStackTrace();
-        }finally {
-            if (rs != null) {
-                rs.close();
-            }
-        }
-
-        String json = JSON.toJSONString(board);
-        PrintWriter writer = resp.getWriter();
-        writer.write(json);
-        writer.close();
-    }
 
     @Override
     public void NameManyBoardNew(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
         NameManyBoar(req, resp, New);
     }
 
-    @Override
-    public void OneBoard(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
-        BufferedReader one = req.getReader();
-        String oneLine = one.readLine();
-        Board Json = JSON.parseObject(oneLine, Board.class);
-        Connection con = Pool.Pool.getPool();
-
-        Board board = new Board();
-        ResultSet rs = null;
-        try{
-            con.setAutoCommit(false);
-
-            String[] main={"board","user"};
-            String[] hot={"board.user_id","user.user_id"};
-
-
-            String[] key;
-            String[] value;
-
-            if(Json==null||Json.getBoard_id() == -1){
-                return;
-            }else {
-                key=new String[] {"board_id"};
-                value=new String[] {String.valueOf(Json.getBoard_id())};
-            }
-
-            rs = JDBC.find(con,main,hot,key,value,Hot);
-
-            while(rs.next()){
-                board = csmht.Dao.Find.FindBoard(con,"board_id",rs.getString("board_id"), Hot);
-            }
-
-            // 找帖子
-
-
-
-
-
-
-            con.commit();
-        }catch (Exception e){
-            con.rollback();
-            e.printStackTrace();
-        }finally {
-            if (rs != null) {
-                rs.close();
-            }
-        }
-
-        String json = JSON.toJSONString(board);
-        PrintWriter writer = resp.getWriter();
-        writer.write(json);
-        writer.close();
-    }
 
     @Override
-    public void ManyPostHot(HttpServletRequest req, HttpServletResponse resp) {
+    public void ManyPostHot(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
     }
 

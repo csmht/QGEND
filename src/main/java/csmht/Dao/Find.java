@@ -77,6 +77,7 @@ public class Find {
         String[] value={value0};
         rs = JDBC.find(con,main,sub,key,value,sort);
         if(rs.next()){
+
             board.setBoard_id(rs.getInt("board_id"));
             board.setTitle(rs.getString("title"));
             board.setContent(rs.getString("content"));

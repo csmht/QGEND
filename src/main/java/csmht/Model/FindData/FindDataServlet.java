@@ -8,32 +8,40 @@ import java.sql.SQLException;
 public interface FindDataServlet {
 
     /**
+     * 用户
      * 创造者查找多个模块
      * 热度排序
+     *
      * @param req
      * @param resp
      */
     public void UserManyBoardHot(HttpServletRequest req, HttpServletResponse resp) throws IOException, SQLException, InterruptedException;
 
     /**
+     * 用户
      * 创造者查找多个模块
      * 时间排序
+     *
      * @param req
      * @param resp
      */
     public void UserManyBoardNew(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 
     /**
+     * 用户
      * 名字查找多个模块
      * 热度排序
+     *
      * @param req
      * @param resp
      */
     public void NameManyBoardHot(HttpServletRequest req, HttpServletResponse resp) throws IOException, SQLException, InterruptedException;
 
     /**
+     * 用户
      * 名字查找多个模块
      * 时间排序
+     *
      * @param req
      * @param resp
      */
@@ -41,6 +49,7 @@ public interface FindDataServlet {
 
     /**
      * 查找单个模块
+     *
      * @param req
      * @param resp
      */
@@ -49,14 +58,16 @@ public interface FindDataServlet {
     /**
      * 查找多个帖子
      * 热度排序
+     *
      * @param req
      * @param resp
      */
-    public void ManyPostHot(HttpServletRequest req, HttpServletResponse resp);
+    public void ManyPostHot(HttpServletRequest req, HttpServletResponse resp) throws IOException;
 
     /**
      * 查找多个帖子
      * 时间排序
+     *
      * @param req
      * @param resp
      */
@@ -64,6 +75,7 @@ public interface FindDataServlet {
 
     /**
      * 查找单个帖子
+     *
      * @param req
      * @param resp
      */
@@ -71,6 +83,7 @@ public interface FindDataServlet {
 
     /**
      * 查找多个用户，默认热度排序
+     *
      * @param req
      * @param resp
      */
@@ -78,11 +91,11 @@ public interface FindDataServlet {
 
     /**
      * 查找单个用户
+     *
      * @param req
      * @param resp
      */
     public void OneUser(HttpServletRequest req, HttpServletResponse resp);
-
 
 
 }

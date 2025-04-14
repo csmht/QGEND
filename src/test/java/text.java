@@ -17,43 +17,53 @@ import static csmht.Dao.Constant.Hot;
 public class text {
 
     public static void main(String[] args) throws SQLException, InterruptedException {
-        System.out.println(Hot);
+
         Board Json = new Board();
         Connection con = Pool.Pool.getPool();
 
-        List<Board> board = new ArrayList<Board>();
+        Json.setBoard_id(1);
 
+        Board board = new Board();
+        ResultSet rs = null;
         try{
             con.setAutoCommit(false);
 
             String[] main={"board","user"};
             String[] hot={"board.user_id","user.user_id"};
-            String[] key={"user.name"};
-            String[] value={Json.getUserName()};
-            if(value[0] == null){
-                key = new String[]{};
-                value = new String[]{};
+
+
+            String[] key;
+            String[] value;
+
+            if(Json.getBoard_id() == -1){
+                return;
+            }else {
+                key=new String[] {"board_id"};
+                value=new String[] {String.valueOf(Json.getBoard_id())};
             }
 
-            ResultSet rs = JDBC.find(con,main,hot,key,value,"");
+            rs = JDBC.find(con,main,hot,key,value,Hot);
 
             while(rs.next()){
-                Board tow = new Board();
-                tow = csmht.Dao.Find.FindBoard(con,"board_id",rs.getString("board_id"),Hot);
-                board.add(tow);
+                board = csmht.Dao.Find.FindBoard(con,"board_id",rs.getString("board_id"), Hot);
             }
-            rs.close();
+
+            // 找帖子
+
+
+
+
+
 
             con.commit();
-
         }catch (Exception e){
             con.rollback();
             e.printStackTrace();
         }finally {
-            Pool.Pool.returnConn(con);
+            if (rs != null) {
+                rs.close();
+            }
         }
-
-
 
         String json = JSON.toJSONString(board);
         System.out.println(json);
