@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -19,16 +19,12 @@
         <button @click="showPage('profile')">个人信息中心</button>
         <button @click="showPage('followedUsers')">关注的用户</button>
         <button @click="showPage('followedSections')">关注的板块</button>
-        <button>我的帖子</button>
-        <button>我的模块</button>
+        <button @click="showPage('myPosts')">我的帖子</button>
+        <button @click="showPage('myModules')">我的模块</button>
         <button @click="showPage('postHistory')">帖子足迹</button>
-
     </aside>
     <!-- 主内容区域 -->
     <main>
-
-
-
         <!-- 用户信息卡片 -->
         <div class="user-info" v-if="currentPage === 'profile'">
             <img :src="user.image" alt="用户头像">
@@ -37,45 +33,69 @@
             <p>用户类型：{{ (user.admin)?'管理员':'普通用户' }}</p>
             <p>粉丝数：{{user.user_likes}}</p>
             <p>创建时间:{{user.create_time}}</p>
+            <button @click="openEditModal">修改</button>
         </div>
         <!-- 关注的用户 -->
-
-
         <div class="follow-section" v-if="currentPage === 'followedUsers'">
             <h3>关注的用户</h3>
             <ul>
                 <li v-for="user in followedUsers" >{{user.follow_user.UserName}}</li>
             </ul>
         </div>
-
-
-
         <!-- 关注的板块 -->
         <div class="follow-section" v-if="currentPage === 'followedSections'">
             <h3>关注的板块</h3>
-
             <div v-for="section in followedSections" :key="section" @click="InBoard(section.follow_board.board_id)">
-                    <h4>{{ section.follow_board.title }}</h4>
-                    <h5>{{ section.follow_board.content | truncate}}</h5>
+                <h4>{{ section.follow_board.title }}</h4>
+                <h5>{{ section.follow_board.content | truncate}}</h5>
             </div>
-
+        </div>
+        <!-- 我的帖子 -->
+        <div v-if="currentPage === 'myPosts'" >
+            <h3>我的帖子</h3>
+            <!-- 这里可以添加显示帖子的具体内容 -->
+            <div v-for="post in myPosts" :key="post.post_id" @click="InPost(post.post_id)">
+                <h4>{{ post.title }}</h4>
+                <p>{{ post.content | truncate }}</p>
+                <button @click="deletePost(post.post_id, $event)">删除</button>
+            </div>
+        </div>
+        <!-- 我的模块 -->
+        <div v-if="currentPage === 'myModules'" >
+            <h3>我的模块</h3>
+            <!-- 这里可以添加显示模块的具体内容 -->
+            <div v-for="module in myModules" :key="module.board_id" @click="InBoard(module.board_id)">
+                <h4>{{ module.title }}</h4>
+                <p>{{ module.content | truncate }}</p>
+                <button @click="deleteModule(module.board_id, $event)">删除</button>
+            </div>
         </div>
         <!-- 用户看过的帖子 -->
-
-
-
         <div v-if="currentPage === 'postHistory'">
-            <div   class="post" v-for="post in posts" :key="post.historyPost.post_id" @click="InPost(post.historyPost.post_id)" >
+            <div class="post" v-for="post in posts" :key="post.historyPost.post_id" @click="InPost(post.historyPost.post_id)" >
                 <h3>{{ post.historyPost.title }}</h3>
                 <p>{{ post.historyPost.content | truncate}}</p>
-                    <div v-if="post.historyPost.image">
-                        <img v-for="image in post.historyPost.image" :src="image" alt="帖子图片">
-                    </div>
-
+                <div v-if="post.historyPost.image">
+                    <img v-for="image in post.historyPost.image" :src="image" alt="帖子图片">
+                </div>
                 <p>点赞数：{{ post.historyPost.likes }}</p>
             </div>
         </div>
     </main>
+    <!-- 修改窗口 -->
+    <div v-if="editModalVisible" class="modal">
+        <div class="modal-content">
+            <span class="close" @click="closeEditModal">&times;</span>
+            <h2>修改用户信息</h2>
+            <label for="username">用户名:</label>
+            <input type="text" id="username" v-model="editUser.UserName">
+            <label for="email">邮箱:</label>
+            <input type="email" id="email" v-model="editUser.email">
+            <label for="avatar">上传头像:</label>
+            <input type="file" @change="CloseImage" id="avatar">
+            <button @click="saveChanges">保存</button>
+        </div>
+    </div>
 </div>
 <script>
     new Vue({
@@ -86,26 +106,80 @@
             followedUsers: [],
             followedSections: [],
             posts: [],
-            post:[],
-
-
+            myPosts: [],
+            myModules: [],
+            editModalVisible: false,
+            editUser: {},
+            image:null
         },
         methods: {
+
+            CloseImage(event) {
+                this.image = event.target.files[0];
+            },
+
             showPage(page) {
                 this.currentPage = page;
             },
-
             openHome() {
                 window.location.assign("../View/Home.html")
             },
-
             InPost(post_id) {
                 window.open(`../View/Post.html?post_id=${post_id}`, "_blank");
             },
             InBoard(board_id) {
                 window.open(`../View/Board.html?board_id=${board_id}`, "_blank")
-            }
+            },
+            openEditModal() {
+                this.editUser = {...this.user};
+                this.editModalVisible = true;
+            },
+            closeEditModal() {
+                this.editModalVisible = false;
+            },
+            saveChanges() {
+                // 这里可以添加保存修改的逻辑
+                // axios.post("")
 
+                this.user = {...this.editUser};
+                this.editModalVisible = false;
+            },
+            deletePost(postId, event) {
+                event.stopPropagation();
+                if (confirm('确定要删除这个帖子吗？')) {
+                    axios.post('/deletePost', { postId: postId })
+                        .then(response => {
+                            if (response.data.success) {
+                                this.myPosts = this.myPosts.filter(post => post.post_id!== postId);
+                                alert('帖子删除成功');
+                            } else {
+                                alert('帖子删除失败');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('删除帖子时出错:', error);
+                            alert('删除帖子时出现错误');
+                        });
+                }
+            },
+            deleteModule(moduleId, event) {
+                event.stopPropagation();
+                if (confirm('确定要删除这个模块吗？')) {
+                    axios.post('/deleteModule', { moduleId: moduleId })
+                        .then(response => {
+                            if (response.data.success) {
+                                this.myModules = this.myModules.filter(module => module.board_id!== moduleId);
+                                alert('模块删除成功');
+                            } else {
+                                alert('模块删除失败');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('删除模块时出错:', error);
+                            alert('删除模块时出现错误');
+                        });
+                }
+            }
         },
         filters: {
             truncate(value) {
@@ -128,15 +202,23 @@
                 _this.followedUsers = _this.user.follow_user;
                 _this.followedSections = _this.user.follow_board;
                 _this.posts = _this.user.history_post;
+                // 假设接口返回我的帖子和我的模块数据
+
             })
 
-            // axios.post('../User/Find/HistoryPost',{post_id: _this.user_id}).then((response) => {
-            //
-            // })
+            axios.post("/User/Find/NameManyBoardHot",{
+                user_id: _this.user.user_id,
+            }).then((response) => {
+                _this.myModules = response.data;
+            })
+
+            axios.post("/User/Find/UserManyPostHot",{
+                user_id: _this.user.user_id,
+            }).then((response) => {
+                _this.myPosts = response.data;
+            })
         }
     });
 </script>
 </body>
-
-
 </html>

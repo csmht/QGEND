@@ -50,12 +50,16 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
                 value = new String[]{};
             } else if (key0.equals("title")) {
                 value = new String[]{"'%" + Json.getTitle() + "'%"};
-            } else if (key0.equals("user.name")) {
-                value = new String[]{Json.getUserName() + "%"};
+
+            } else if (key0.equals("user_id")) {
+                value = new String[]{String.valueOf(Json.getUser_id())};
+
             } else if (key0.equals("board_id")) {
                 value = new String[]{String.valueOf(Json.getBoard_id())};
+
             } else {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
             }
 
             rs = JDBC.find(con, main, hot, key, value, sort);
@@ -83,7 +87,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
     }
 
     private void UserManyBoar(HttpServletRequest req, HttpServletResponse resp, String aNew) throws IOException, SQLException, InterruptedException {
-        Boar(req, resp, "user.name", aNew);
+        Boar(req, resp, "user_id", aNew);
     }
 
     private void NameManyBoar(HttpServletRequest req, HttpServletResponse resp, String hot2) throws IOException, SQLException, InterruptedException {
@@ -200,18 +204,19 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
                 key = new String[]{};
                 value = new String[]{};
             } else if (key0.equals("title")) {
-
                 value = new String[]{"%" + Json.getTitle() + "%"};
-            } else if (key0.equals("user.name")) {
 
-                value = new String[]{"%" + Json.getUser_id() + "%"};
+            } else if (key0.equals("user.user_id")) {
+                value = new String[]{String.valueOf(Json.getUser_id())};
+
             } else if (key0.equals("post_id")) {
-
                 value = new String[]{String.valueOf(Json.getPost_id())};
+
             } else {
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-                return;
-            }
+                    resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+
 
             rs = JDBC.find(con, main, hot, key, value, sort);
 
@@ -242,7 +247,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
     }
 
     private void UserManyPost(HttpServletRequest req, HttpServletResponse resp, String sort) throws IOException, SQLException, InterruptedException {
-        Post(req,resp,"user.name", sort);
+        Post(req,resp,"user_id", sort);
     }
 
     @Override

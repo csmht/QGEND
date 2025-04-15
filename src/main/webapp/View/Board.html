@@ -19,9 +19,11 @@
             <p>创建者: {{ board.creator }}</p>
             <p>关注人数: {{ board.likes }}</p>
         </div>
+        <!-- 添加发帖按钮 -->
         <div class="module-actions">
             <button @click="followModule">关注 ({{ module.followers }})</button>
             <button @click="reportModule">举报</button>
+            <button @click="createPost">发帖</button>
         </div>
         <div class="posts-list">
             <h2>模块内帖子 ()</h2>
@@ -32,6 +34,8 @@
 
                 <p class="post-content-preview">{{ post.content | truncate}}...</p>
                 <h5>发帖时间：{{post.create_time}}</h5>
+                <!-- 添加举报帖子按钮 -->
+                <button @click="reportPost(post.id)">举报该帖子</button>
             </div>
         </div>
     </div>
@@ -41,17 +45,18 @@
         el: '#module-app',
         data: {
             module: {
-                board_id:'0',
+                board_id: '0',
                 title: '0',
                 user_id: '0',
                 creator: '示例创建者',
                 followers: 10,
                 create_time: '0',
                 post: [
-                    {"id":-1,
-                        "title":"000",
-                        "user_id":"null",
-                        "likes":"0"
+                    {
+                        "id": -1,
+                        "title": "000",
+                        "user_id": "null",
+                        "likes": "0"
                     }
                 ]
             },
@@ -63,21 +68,29 @@
             },
             reportModule() {
                 alert('你已举报该模块，我们会尽快处理。');
+            },
+            // 发帖方法
+            createPost() {
+                alert('你可以在这里实现发帖功能。');
+            },
+            // 举报帖子方法
+            reportPost(postId) {
+                alert(`你已举报帖子 ID 为 ${postId} 的帖子，我们会尽快处理。`);
             }
         },
         beforeMount() {
             const urlParams = new URLSearchParams(window.location.search);
             this.board_id = urlParams.get('boardID');
             var _this = this;
-            axios.post("/User/Find/OneBoard",{"board_id":this.board_id}).then((response) => {
+            axios.post("/User/Find/OneBoard", { "board_id": this.board_id }).then((response) => {
                 _this.board = response.data;
             })
         },
         filters: {
             truncate(value) {
                 if (typeof value === 'string') {
-                return value.length > 20? value.slice(0, 20) + "..." : value;
-            }
+                    return value.length > 20 ? value.slice(0, 20) + "..." : value;
+                }
                 return '';
             }
         }

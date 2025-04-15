@@ -33,7 +33,7 @@
   </div>
   <!-- 模块展示区域  true帖子-->
   <div v-if="!showPosts">
-    <div class="card" v-for="module in filteredModules" :key="module.board_id" @click="InModule(module.board_id)">
+    <div class="card" v-for="module in filteredModules" :key="module.board_id" @click="InBoard(module.board_id)">
       <h3>{{ module.title }}</h3>
       <p>{{ module.content | truncate}}</p>
     </div>
@@ -72,12 +72,12 @@
 
 
       },
-      InPost(post_id){
+      InPost(post_id) {
         window.open(`../View/Post.html?post_id=${post_id}`, "_blank");
       },
-      InModule(module_id){
-        window.open(`../View/Board.html?board_id=${module_id}`, "_blank");
-      }
+      InBoard(board_id) {
+        window.open(`../View/Board.html?board_id=${board_id}`, "_blank")
+      },
 
     },
     beforeMount() {

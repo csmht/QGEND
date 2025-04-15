@@ -13,7 +13,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UserBrowsePost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void BrowsePost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
 
     /**
      * 关注模块
@@ -22,7 +22,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UserFollowBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void FollowBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
 
     /**
      * 取关模块
@@ -31,7 +31,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UserUnFollowBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void UnFollowBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
 
 
     /**
@@ -43,7 +43,7 @@ public interface UserService {
      * @throws IOException
      * @throws InterruptedException
      */
-    public void UserLike(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException;
+    public void Like(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException;
 
     /**
      * 取消喜欢帖子
@@ -52,7 +52,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UserUnLike(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void UnLike(HttpServletRequest req, HttpServletResponse res) throws SQLException;
 
     /**
      * 关注用户
@@ -61,7 +61,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UserFollowUser(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void FollowUser(HttpServletRequest req, HttpServletResponse res) throws SQLException;
 
     /**
      * 取关用户
@@ -70,7 +70,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UserUnFollowUser(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void UnFollowUser(HttpServletRequest req, HttpServletResponse res) throws SQLException;
 
     /**
      * 举报帖子
@@ -79,7 +79,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UserBrowseBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void BrowseBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
 
     /**
      * 发帖
@@ -88,7 +88,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UserAddPost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void AddPost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
 
     /**
      * 删贴
@@ -97,7 +97,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UserDeletePost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void DeletePost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
 
     /**
      * 申请模块
@@ -107,7 +107,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UserAddBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void AddBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
 
     /**
      * 删除模块
@@ -116,7 +116,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UserDeleteBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void DeleteBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
 
     /**
      * 评论帖子
@@ -125,7 +125,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UserAddCommentToPost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void AddCommentToPost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
 
     /**
      * 删除帖子评论
@@ -134,5 +134,5 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UserDeleteCommentToPost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void DeleteCommentToPost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
 }
