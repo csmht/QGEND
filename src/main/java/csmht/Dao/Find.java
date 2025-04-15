@@ -11,6 +11,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static csmht.Dao.Constant.New;
+
 
 public class Find {
 
@@ -55,6 +57,29 @@ public class Find {
             post.setViews(rs.getInt("views"));
             post.setCreate_time(rs.getString("create_time"));
         }
+
+
+        main = new String[]{"post_image"};
+        sub = new String[]{};
+        key = new String[]{"post_id"};
+        value = new String[]{post.getPost_id()+""};
+
+        rs = JDBC.find(con,main,sub,key,value,"ORDER BY post_image_id DESC");
+
+        while (rs.next()) {
+            InputStream inputStream = rs.getBinaryStream("image");
+            if (inputStream != null) {
+                byte[] image = new byte[inputStream.available()];
+                inputStream.read(image);
+                inputStream.close();
+                post.addImage(image);
+            }
+        }
+
+
+        rs.close();
+
+
 
         return post;
     }

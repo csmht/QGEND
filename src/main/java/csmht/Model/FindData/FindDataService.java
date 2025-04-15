@@ -135,35 +135,35 @@ public interface FindDataService {
      */
     public void HistoryPost(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 
-    /**
-     * 查找关注用户
-     * @param req
-     * @param resp
-     * @throws SQLException
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    public void FollowUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
-
-    /**
-     * 查找关注板块
-     * @param req
-     * @param resp
-     * @throws SQLException
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    public void FollowBoard(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
-
-    /**
-     * 查找喜欢帖子
-     * @param req
-     * @param resp
-     * @throws SQLException
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    public void LikePost(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
+//    /**
+//     * 查找关注用户
+//     * @param req
+//     * @param resp
+//     * @throws SQLException
+//     * @throws IOException
+//     * @throws InterruptedException
+//     */
+//    public void FollowUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
+//
+//    /**
+//     * 查找关注板块
+//     * @param req
+//     * @param resp
+//     * @throws SQLException
+//     * @throws IOException
+//     * @throws InterruptedException
+//     */
+//    public void FollowBoard(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
+//
+//    /**
+//     * 查找喜欢帖子
+//     * @param req
+//     * @param resp
+//     * @throws SQLException
+//     * @throws IOException
+//     * @throws InterruptedException
+//     */
+//    public void LikePost(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 
     /**
      * 查找我的信息

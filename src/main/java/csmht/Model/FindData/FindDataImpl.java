@@ -45,13 +45,13 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] value = null;
 
             key = new String[]{key0};
-            if (Json == null || Json.getUserName() == null) {
+            if (Json == null || Json.getTitle() == null) {
                 key = new String[]{};
                 value = new String[]{};
             } else if (key0.equals("title")) {
-                value = new String[]{Json.getTitle()};
+                value = new String[]{"'%" + Json.getTitle() + "'%"};
             } else if (key0.equals("user.name")) {
-                value = new String[]{Json.getUserName()};
+                value = new String[]{Json.getUserName() + "%"};
             } else if (key0.equals("board_id")) {
                 value = new String[]{String.valueOf(Json.getBoard_id())};
             } else {
@@ -196,15 +196,15 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] key = null;
             String[] value = null;
             key = new String[]{key0};
-            if (Json == null || Json.getUserName() == null) {
+            if (Json == null || Json.getTitle() == null) {
                 key = new String[]{};
                 value = new String[]{};
             } else if (key0.equals("title")) {
 
-                value = new String[]{Json.getTitle()};
+                value = new String[]{"%" + Json.getTitle() + "%"};
             } else if (key0.equals("user.name")) {
 
-                value = new String[]{String.valueOf(Json.getUser_id())};
+                value = new String[]{"%" + Json.getUser_id() + "%"};
             } else if (key0.equals("post_id")) {
 
                 value = new String[]{String.valueOf(Json.getPost_id())};
@@ -351,7 +351,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
                 key = new String[]{"user_id"};
                 value = new String[]{(String) req.getSession().getAttribute("id")};
             } else if (key0.equals("user.name")) {
-                value = new String[]{Json.getUserName()};
+                value = new String[]{Json.getUserName() + "%"};
             } else if (key0.equals("user_id")) {
                 sort = "";
                 value = new String[]{String.valueOf(Json.getUser_id())};
@@ -417,35 +417,40 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
 
         user = csmht.Dao.Find.FindUser(con,"user_id",String.valueOf(Json.getUser_id()),"");
 
-        String[] main = {"user","user_like","user_follow","board_follow"};
-        String[] hot = {"user.user_id","user_like.user_id","user_follow.user_id","board_follow.user_id"};
+        String[] main = {"user","user_like","user_follow","board_follow","view_history"};
+        String[] hot = {"user.user_id","user_like.user_id","user_follow.user_id","board_follow.user_id","view_history.user_id"};
         String[] key = {"user.user_id"};
         String[] value = {Json.getUser_id()+""};
 
         rs = JDBC.find(con,main,hot,key,value,"");
 
         while (rs.next()) {
-            String post_id = rs.getString("post_id");
+            String post_id = rs.getString("user_like.post_id");
             String board_id = rs.getString("board_id");
             String user_id = rs.getString("follower_id");
+            String history_id = rs.getString("view_history.post_id");
 
             if(post_id!=null){
               LikePost post =  new LikePost(csmht.Dao.Find.FindPost(con,"post_id",post_id,""),rs.getString("user_like.create_time"));
               user.addLikePost(post);
             }
             if(board_id!=null){
-              FollowBoard board = new FollowBoard(csmht.Dao.Find.FindBoard(con,"board_id",board_id,""), rs.getString("follow_time"));  ;
+              FollowBoard board = new FollowBoard(csmht.Dao.Find.FindBoard(con,"board_id",board_id,""), rs.getString("board_follow.follow_time"));  ;
               user.addFollowBoard(board);
             }
             if(user_id!=null){
-               FollowUser user1 = new FollowUser(csmht.Dao.Find.FindUser(con,"user_id",user_id,""),rs.getString("follow_time")) ;
+               FollowUser user1 = new FollowUser(csmht.Dao.Find.FindUser(con,"user_id",user_id,""),rs.getString("user_follow.follow_time")) ;
                user.addFollowUser(user1);
+            }
+            if(history_id!=null){
+                HistoryPost post = new HistoryPost(csmht.Dao.Find.FindPost(con,"post_id",history_id,""),rs.getString("view_time"));
+                user.addHistoryPost(post);
             }
 
         }
 
 
-            rs.close();
+        rs.close();
 
 
         String json = JSON.toJSONString(user);
@@ -551,55 +556,58 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         writer.close();
     }
 
-    @Override
-    public void FollowUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
-        BufferedReader one = req.getReader();
-        String oneLine = one.readLine();
-
-        User Json = JSON.parseObject(oneLine, User.class);
-
-        Connection con = Pool.Pool.getPool();
 
 
-        List<User> user = new ArrayList<>();
 
-        ResultSet rs = null;
-
-
-        try {
-            con.setAutoCommit(false);
-
-            String[] main = {"user_follow"};
-            String[] hot = {};
-            String[] key = {"user_id"};
-            String[] value = {String.valueOf(Json.getUser_id())};
-
-
+//    @Override
+//    public void FollowUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+//        BufferedReader one = req.getReader();
+//        String oneLine = one.readLine();
+//
+//        User Json = JSON.parseObject(oneLine, User.class);
+//
+//        Connection con = Pool.Pool.getPool();
+//
+//
+//        List<User> user = new ArrayList<>();
+//
+//        ResultSet rs = null;
+//
+//
+//        try {
+//            con.setAutoCommit(false);
+//
+//            String[] main = {"user_follow"};
+//            String[] hot = {};
+//            String[] key = {"user_id"};
+//            String[] value = {String.valueOf(Json.getUser_id())};
+//
+//
 //            rs = JDBC.find(con,);
-
-
-
-            con.commit();
-        }catch (Exception e){
-            if(rs != null){
-                rs.close();
-            }
-            con.rollback();
-            e.printStackTrace();
-        }
-
-
-    }
-
-    @Override
-    public void FollowBoard(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
-
-    }
-
-    @Override
-    public void LikePost(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
-
-    }
+//
+//
+//
+//            con.commit();
+//        }catch (Exception e){
+//            if(rs != null){
+//                rs.close();
+//            }
+//            con.rollback();
+//            e.printStackTrace();
+//        }
+//
+//
+//    }
+//
+//    @Override
+//    public void FollowBoard(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+//
+//    }
+//
+//    @Override
+//    public void LikePost(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+//
+//    }
 
 
 }

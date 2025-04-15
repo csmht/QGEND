@@ -1,9 +1,14 @@
 package csmht.Dao.ClassObject;
 
+import com.alibaba.fastjson2.annotation.JSONField;
+
 public class FollowBoard {
 
+
+    @JSONField(name="follow_time")
     private String follow_time;
 
+    @JSONField(name="follow_board")
     private Board board;
 
     public FollowBoard(Board board, String follow_time) {

@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JDBC {
 
@@ -19,6 +21,18 @@ public class JDBC {
      * @throws SQLException
      */
     public static ResultSet find(Connection conn,String[] main,String[] sub,String[] key,String[] val,String sort) throws SQLException {
+        List<String> list = new ArrayList<String>();
+        for(int i=0;i<val.length;i++){
+
+            if(val[i].contains("%")){
+                val[i] = val[i].replace("%","");
+                list.add(" REGEXP ");
+            }else {
+                list.add(" = ");
+            }
+
+        }
+
         StringBuilder sql = new StringBuilder("select ");
         for (int i = 0; i < main.length; i++) {
             sql.append(main[i]).append(".*");
@@ -39,10 +53,10 @@ public class JDBC {
                 sql.append(" and ");
             }
 
-            sql.append(key[i]).append(" = ?");
+            sql.append(key[i]).append(list.get(i)).append("?");
         }
 
-        sql.append(sort);
+        sql.append(" ").append(sort);
 
         PreparedStatement ps = conn.prepareStatement(String.valueOf(sql));
         for (int i =0; i < val.length; i++) {

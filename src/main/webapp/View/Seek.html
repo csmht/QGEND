@@ -24,16 +24,18 @@
   </div>
   <!-- 帖子展示区域 -->
   <div v-if="showPosts">
-    <div class="card" v-for="post in filteredPosts" :key="post.id">
-      <h3>{{ post.title }}</h3>
-      <p>{{ post.content }}</p>
+    <div class="card" v-for="post in filteredPosts" :key="post.post_id" @click="InPost(post.post_id)">
+      <h3>标题：{{ post.title }}</h3>
+      <p>{{ post.content | truncate}}</p>
+      <h4>发布者：{{post.user_id}}</h4>
+      <h5>{{ post.create_time }}</h5>
     </div>
   </div>
   <!-- 模块展示区域  true帖子-->
   <div v-if="!showPosts">
-    <div class="card" v-for="module in filteredModules" :key="module.id">
-      <h3>{{ module.name }}</h3>
-      <p>{{ module.description }}</p>
+    <div class="card" v-for="module in filteredModules" :key="module.board_id" @click="InModule(module.board_id)">
+      <h3>{{ module.title }}</h3>
+      <p>{{ module.content | truncate}}</p>
     </div>
   </div>
 </div>
@@ -43,16 +45,8 @@
     data: {
       showPosts: true,
       seekFind:'',
-      posts: [
-        { id: 1, title: '帖子1', content: '这是帖子1的内容' },
-        { id: 2, title: '帖子2', content: '这是帖子2的内容' },
-        { id: 3, title: '帖子3', content: '这是帖子3的内容' }
-      ],
-      modules: [
-        { id: 1, name: '模块1', description: '这是模块1的描述' },
-        { id: 2, name: '模块2', description: '这是模块2的描述' },
-        { id: 3, name: '模块3', description: '这是模块3的描述' }
-      ],
+      posts: [],
+      modules: [],
       filteredPosts: [],
       filteredModules: []
     },
@@ -61,13 +55,44 @@
       this.filteredModules = this.modules;
     },
     methods: {
-      performSearch() {
+
+      performSearch(){
+        _this = this;
+        axios.post("/User/Find/NameManyBoardHot",{
+          title:_this.seekFind,
+        }).then(res =>{
+          _this.filteredModules = res.data;
+        })
+
+        axios.post("/User/Find/TitleManyPostHot",{
+          title:_this.seekFind,
+        }).then(res =>{
+          _this.filteredPosts= res.data;
+        })
+
 
       },
+      InPost(post_id){
+        window.open(`../View/Post.html?post_id=${post_id}`, "_blank");
+      },
+      InModule(module_id){
+        window.open(`../View/Board.html?board_id=${module_id}`, "_blank");
+      }
 
     },
     beforeMount() {
-
+      const urlParams = new URLSearchParams(window.location.search);
+      this.seekFind = urlParams.get('find');
+      const _this = this;
+      _this.performSearch();
+    },
+    filters: {
+      truncate(value) {
+        if (typeof value === 'string') {
+          return value.length > 20? value.slice(0, 20) + "..." : value;
+        }
+        return '';
+      }
     }
   });
 </script>

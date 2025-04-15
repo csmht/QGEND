@@ -22,7 +22,6 @@ public class User extends UserClass {
     @JSONField(name="pass")
     private String pass;
 
-
     @JSONField(name="image")
     private byte[] image;
 
@@ -37,6 +36,9 @@ public class User extends UserClass {
 
     @JSONField(name="like_post")
     private List<LikePost> like_post = new ArrayList<>();
+
+    @JSONField(name="history_post")
+    private List<HistoryPost> history_post = new ArrayList<>();
 
 
     public String getPassword() {
@@ -93,6 +95,17 @@ public class User extends UserClass {
 
     public void addLikePost(LikePost like_post) {
         this.like_post.add(like_post);
+    }
+
+    public List<HistoryPost> getHistory_post() {return history_post;}
+
+    public void setHistory_post(List<HistoryPost> history_post) {
+
+        this.history_post = history_post;
+    }
+
+    public void addHistoryPost(HistoryPost history_post) {
+        this.history_post.add(history_post);
     }
 
 

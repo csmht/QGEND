@@ -70,7 +70,7 @@ public class UserLoginImpl extends UserBaseServlet implements UserLoginService {
                 return;
             }
             String[] e = {"password","email","name"};
-            String[] f = {Json.getPassword(),Json.getEmail(),String.valueOf(Json.getUser_id())};
+            String[] f = {Json.getPassword(),Json.getEmail(),Json.getEmail()};
             int i = JDBC.add(con,"user",e,f);
             con.commit();
             pd = true;

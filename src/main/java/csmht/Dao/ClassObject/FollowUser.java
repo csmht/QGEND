@@ -1,13 +1,16 @@
 package csmht.Dao.ClassObject;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import csmht.Dao.UserClass;
 
 import java.util.List;
 
 public class FollowUser {
 
+    @JSONField(name="follow_time")
     private String follow_time;
 
+    @JSONField(name="follow_user")
     private User follow_user;
 
     public FollowUser(User follow_user, String follow_time) {
