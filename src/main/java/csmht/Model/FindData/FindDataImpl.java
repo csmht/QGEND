@@ -2,6 +2,7 @@ package csmht.Model.FindData;
 
 import com.alibaba.fastjson2.JSON;
 import csmht.Dao.ClassObject.Board;
+import csmht.Dao.ClassObject.Comment;
 import csmht.Dao.ClassObject.Post;
 import csmht.Dao.ClassObject.User;
 import csmht.Dao.JDBC;
@@ -286,7 +287,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataServlet {
             String[] key = null;
             String[] value = null;
             key = new String[]{};
-            if (Json == null || Json.getUserName() == null) {
+            if (Json == null || Json.getPost_id() == -1) {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND);
                 return;
             } else {
@@ -306,10 +307,11 @@ public class FindDataImpl extends UserBaseServlet implements FindDataServlet {
             }
 
 
-            post.setComments(csmht.Dao.Find.FindPostComment(con,"post_id",String.valueOf(post.getPost_id()),Hot));
+            post.setComments(csmht.Dao.Find.FindComment(con,"post_id",String.valueOf(post.getPost_id()),Hot));
 
-
-
+            for(Comment c : post.getComments()) {
+               c.setCommComment(csmht.Dao.Find.FindComment(con,"comment1_id",String.valueOf(c.getComment_Id()),Hot));
+            }
 
             con.commit();
         } catch (Exception e) {
@@ -333,7 +335,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataServlet {
         String oneLine = one.readLine();
         User Json = JSON.parseObject(oneLine, User.class);
         Connection con = Pool.Pool.getPool();
-
+        String sort = Hot;
         List<User> post = new ArrayList<User>();
         ResultSet rs = null;
         try {
@@ -345,23 +347,96 @@ public class FindDataImpl extends UserBaseServlet implements FindDataServlet {
 
             String[] key = null;
             String[] value = null;
+
             key = new String[]{key0};
             if(Json == null || Json.getUserName() == null) {
+                sort = "";
                 key = new String[]{"user_id"};
                 value = new String[]{(String) req.getSession().getAttribute("id")};
             } else if (key0.equals("user.name")) {
                 value = new String[]{Json.getUserName()};
             } else if (key0.equals("user_id")) {
+                sort = "";
                 value = new String[]{String.valueOf(Json.getUser_id())};
+            }else {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
             }
+
+
+            rs = JDBC.find(con, main, hot, key, value,sort);
+
+            while (rs.next()) {
+                User tow = new User();
+                tow = csmht.Dao.Find.FindUser(con, "user_id", rs.getString("user_id"),sort);
+                post.add(tow);
+            }
+
+            con.commit();
+        } catch (Exception e) {
+            con.rollback();
+            e.printStackTrace();
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+        }
+        String json = null;
+        if(sort.isEmpty()){
+            json = JSON.toJSONString(post.get(0));
+        }else {
+            json = JSON.toJSONString(post);
+        }
+
+        PrintWriter writer = resp.getWriter();
+        writer.write(json);
+        writer.close();
+    }
+
+    @Override
+    public void ManyUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+        User(req,resp,"user.name");
+    }
+
+    @Override
+    public void OneUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+        User(req,resp,"user_id");
+    }
+
+    @Override
+    public void CommComment(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+        BufferedReader one = req.getReader();
+        String oneLine = one.readLine();
+        Comment Json = JSON.parseObject(oneLine, Comment.class);
+        Connection con = Pool.Pool.getPool();
+
+        List<Comment> post = new ArrayList<>();
+        ResultSet rs = null;
+        try {
+            con.setAutoCommit(false);
+
+            String[] main = {"comment_comment"};
+            String[] hot = {};
+
+
+            String[] key = null;
+            String[] value = null;
+            key = new String[]{};
+            if(Json == null || Json.getComment_Id() == -1) {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }else {
+                key=new String[]{"comment1_id"};
+                value = new String[]{String.valueOf(Json.getComment_Id())};
+            }
+
+            rs = JDBC.find(con,main, hot, key, value,Hot);
 
 
             rs = JDBC.find(con, main, hot, key, value,Hot);
 
             while (rs.next()) {
-                User tow = new User();
-                tow = csmht.Dao.Find.FindUser(con, "user_id", rs.getString("user_id"),Hot);
-                post.add(tow);
+
             }
 
             con.commit();
@@ -378,15 +453,50 @@ public class FindDataImpl extends UserBaseServlet implements FindDataServlet {
         PrintWriter writer = resp.getWriter();
         writer.write(json);
         writer.close();
-    }
-
-    @Override
-    public void ManyUser(HttpServletRequest req, HttpServletResponse resp) {
 
     }
 
     @Override
-    public void OneUser(HttpServletRequest req, HttpServletResponse resp) {
+    public void HistoryPost(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+        BufferedReader one = req.getReader();
+        String oneLine = one.readLine();
+        Post Json = JSON.parseObject(oneLine, Post.class);
+        Connection con = Pool.Pool.getPool();
 
+        List<Post> post = new ArrayList<>();
+        ResultSet rs = null;
+        try{
+            con.setAutoCommit(false);
+            String[] main = {"view_history"};
+            String[] hot = {};
+            String[] key = {"user_id"};
+            String[] value = {String.valueOf(Json.getUser_id())};
+
+            rs = JDBC.find(con,main,hot,key,value,"ORDER BY likes view_time DESC");
+
+            while (rs.next()) {
+                Post tow = new Post();
+                tow = csmht.Dao.Find.FindPost(con, "post_id", rs.getString("post_id"),Hot);
+                post.add(tow);
+            }
+
+
+
+            con.commit();
+        }catch (Exception e){
+            con.rollback();
+            e.printStackTrace();
+        }
+
+
+
+
+
+
+
+        String json = JSON.toJSONString(post);
+        PrintWriter writer = resp.getWriter();
+        writer.write(json);
+        writer.close();
     }
 }

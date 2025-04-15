@@ -37,8 +37,10 @@ public class UserLoginImpl extends UserBaseServlet implements UserLoginService {
         if(rs.next()) {
             res.getWriter().write("true");
             HttpSession session = req.getSession();
+            session.setMaxInactiveInterval(1800);
             session.setAttribute("id",rs.getString("user_id"));
             session.setAttribute("admin",rs.getString("admin"));
+
         }else {
             res.getWriter().write("false");
         }

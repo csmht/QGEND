@@ -44,6 +44,7 @@ public class Find {
 
 
         if(rs.next()){
+            post.setUser_likes(rs.getInt("user_likes"));
             post.setUserName(rs.getString("user.name"));
             post.setPost_id(rs.getInt("post_id"));
             post.setTitle(rs.getString("title"));
@@ -80,6 +81,7 @@ public class Find {
         String[] value={value0};
         rs = JDBC.find(con,main,sub,key,value,sort);
         if(rs.next()){
+            board.setUser_likes(rs.getInt("user_likes"));
             board.setUserName(rs.getString("user.name"));
             board.setBoard_id(rs.getInt("board_id"));
             board.setTitle(rs.getString("title"));
@@ -126,12 +128,14 @@ public class Find {
         rs = JDBC.find(con,main,sub,key,value,sort);
 
         if(rs.next()){
+            user.setUser_likes(rs.getInt("user_likes"));
             user.setUser_id(rs.getInt("user_id"));
-            user.setPassword(rs.getString("password"));
+//            user.setPassword(rs.getString("password"));
             user.setUserName(rs.getString("name"));
             user.setEmail(rs.getString("email"));
             user.setAdmin(rs.getBoolean("admin"));
             user.setPass(rs.getString("pass"));
+            user.setCreate_time(rs.getString("register_time"));
 
 
             InputStream inputStream = rs.getBinaryStream("image");
@@ -149,14 +153,14 @@ public class Find {
     }
 
     /**
-     * 寻找帖子评论
-     * @param key0 约束列 user_id,post_id
+     * 寻找评论
+     * @param key0 约束列 user_id,post_id comment1_id
      * @param value0
      * @param sort Hot or New
      * @return
      * @throws SQLException
      */
-    static public List<Comment> FindPostComment(Connection con, String key0, String value0, String sort) throws SQLException, InterruptedException {
+    static public List<Comment> FindComment(Connection con, String key0, String value0, String sort) throws SQLException, InterruptedException {
         List<Comment> comment = new ArrayList<>();
         ResultSet rs = null;
 
@@ -176,50 +180,49 @@ public class Find {
             one.setUserName(rs.getString("user.name"));
             one.setUser_id(rs.getInt("user_id"));
             one.setPost_Id(rs.getInt("post_id"));
-            one.setContent(rs.getString("comment"));
+            one.setContent(rs.getString("content"));
             one.setComment_Id(rs.getInt("comment_id"));
             one.setCreate_time(rs.getString("create_time"));
             one.setLikes(rs.getInt("likes"));
+            one.setComment1_id(rs.getInt("comment1_id"));
             comment.add(one);
         }
         rs.close();
         return comment;
     }
 
-    /**
-     * 寻找评论评论
-     * @param con
-     * @param comm_id
-     * @param sort
-     * @return
-     * @throws SQLException
-     * @throws InterruptedException
-     */
-    static public CommComment FindCommComment(Connection con, int comm_id, String sort) throws SQLException, InterruptedException {
-        CommComment commComment = new CommComment();
-        ResultSet rs = null;
-
-        if(sort==null|| sort.isEmpty()){
-            sort = "";
-        }
-
-        String[] main={"comment_comment","user"};
-        String[] sub={"comment_comment.user_id","user.user_id"};
-        String[] key={"comment_id"};
-        String[] value={String.valueOf(comm_id)};
-        rs = JDBC.find(con,main,sub,key,value,sort);
-
-        if(rs.next()){
-            commComment.setUserName(rs.getString("user.name"));
-            commComment.setCommComm_id(rs.getInt("commcomm_id"));
-            commComment.setUser_id(rs.getInt("user_id"));
-            commComment.setComment(rs.getString("comment"));
-            commComment.setComm_id(rs.getInt("comment_id"));
-            commComment.setCreate_time(rs.getString("create_time"));
-            commComment.setLikes(rs.getInt("likes"));
-        }
-        rs.close();
-        return commComment;
-    }
+//    /**
+//     * 寻找评论评论
+//     * @param con
+//     * @param comm_id 被评论id
+//     * @param sort 排序
+//     * @return
+//     * @throws SQLException
+//     * @throws InterruptedException
+//     */
+//    static public Comment FindCommComment(Connection con, int comm_id, String sort) throws SQLException, InterruptedException {
+//        Comment commComment = new Comment();
+//        ResultSet rs = null;
+//
+//        if(sort==null|| sort.isEmpty()){
+//            sort = "";
+//        }
+//
+//        String[] main={"comment_comment","user"};
+//        String[] sub={"comment_comment.user_id","user.user_id"};
+//        String[] key={"comment_id"};
+//        String[] value={String.valueOf(comm_id)};
+//        rs = JDBC.find(con,main,sub,key,value,sort);
+//
+//        if(rs.next()){
+//            commComment.setComment_Id(rs.getInt("comment_id"));
+//            commComment.setUser_id(rs.getInt("user_id"));
+//            commComment.setPost_Id(rs.getInt("post_id"));
+//            commComment.setContent(rs.getString("comment"));
+//
+//        }
+//        rs.close();
+//        return commComment;
+//    }
 
 }

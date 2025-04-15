@@ -25,7 +25,7 @@
                 <button :class="{ active: isLatestPosts }" @click="showLatestPosts">最新帖子</button>
                 <button :class="{ active:!isLatestPosts }" @click="showPopularPosts">热门帖子</button>
             </div>
-            <div class="post" v-for="post in filteredPosts" :key="post.id">
+            <div class="post" v-for="post in filteredPosts" :key="post.post_id" @click="InPost(post.post_id)">
                 <h3>{{ post.title }}</h3>
                 <p>作者: {{ post.UserName }}</p>
                 <p>{{post.content | truncate}}</p>
@@ -72,11 +72,15 @@
                 this.filteredPosts = this.HotPost;
             },
             search() {
-                window.location.replace(`../View/Seek.html&find=${this.find}}}`);
+                window.location.assign(`../View/Seek.html?find=${this.find}`);
             },
             InBoard(board_id) {
-                window.location.replace("../View/Board.html?boardID=" + board_id);
+                window.location.assign("../View/Board.html?boardID=" + board_id)
+            },
+            InPost(post_id) {
+                window.location.assign("../View/Post.html?postID=" + post_id)
             }
+
         },
         beforeMount() {
             const _this = this;

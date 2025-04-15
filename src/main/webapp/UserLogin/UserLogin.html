@@ -86,7 +86,11 @@
               }).then((res) => {
                 if(res.status == 200){
                   if(res.data === true){
-                    window.location.replace("../User/UserMeun.html");
+                    axios.post('/User/Find/OneUser').then((res1) => {
+                      const a = res1.data;
+                      window.location.assign("../User/UserMeun.html?user_id=" + a.user_id);
+                    })
+
                   }else{
                     alert("登录失败");
                   }

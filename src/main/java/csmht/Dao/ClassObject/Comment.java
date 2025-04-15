@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Comment extends UserClass {
     @JSONField(name="comment_id")
-    private int comment_Id;
+    private int comment_Id = -1;
 
     @JSONField(name="likes")
     private int likes;
@@ -24,6 +24,9 @@ public class Comment extends UserClass {
 
     @JSONField(name="comment_comment")
     private List<Comment> commComment = new ArrayList<>();
+
+    @JSONField(name="comment1_id")
+    private int comment1_id;
 
     public int getComment_Id() {
         return comment_Id;
@@ -75,6 +78,14 @@ public class Comment extends UserClass {
 
     public void addComment(Comment comment) {
         this.commComment.add(comment);
+    }
+
+    public int getComment1_id() {
+        return comment1_id;
+    }
+
+    public void setComment1_id(int comment1_id) {
+        this.comment1_id = comment1_id;
     }
 
 }

@@ -15,30 +15,33 @@
 <body>
 <div id="post-app">
     <div class="post-container">
-        <h1 class="post-title">{{ post.title }}</h1>
-        <p class="post-content">{{ post.content }}</p>
-        <img class="post-image" :src="post.image" alt="帖子图片">
+        <h1 class="post-title">{{ posts.title }}</h1>
+        <p class="post-content">{{ posts.content }}</p>
+        <img class="post-image" :src="posts.image" alt="帖子图片">
         <div class="publisher-info">
-            <span>发布者: {{ post.publisher.name }}</span>
-            <span>发布时间: {{ post.publisher.postTime }}</span>
+            <span>发布者: {{ posts.UserName }}</span>
+            <span>发布时间: {{ posts.create_time }}</span>
         </div>
         <div class="actions">
-            <button @click="likePost">点赞 ({{ post.likes }})</button>
-            <button @click="collectPost">收藏 ({{ post.collects }})</button>
+            <button @click="likePost">点赞 ({{ posts.likes }})</button>
         </div>
         <div class="comments">
-            <h2>评论 ({{ comments.length }})</h2>
-            <div class="comment" v-for="comment in comments" :key="comment.id">
-                <div class="comment-author">{{ comment.author }}</div>
-                <div class="comment-text">{{ comment.text }}</div>
+            <h2>评论 ()</h2>
+            <div class="comment" v-for="comment in posts.PostComment" :key="comment.comment_id">
+                <div class="comment-author">{{ comment.UserName }}</div>
+                <div class="comment-text">{{ comment.content }}
+                <h6>{{comment.create_time}}</h6>
+                </div>
                 <button @click="showReplyInput(comment)">回复</button>
                 <div class="reply-section" v-if="comment.showReplyInput">
                     <textarea v-model="comment.replyText" placeholder="请输入回复内容"></textarea>
                     <button @click="submitReply(comment)">提交回复</button>
                 </div>
-                <div class="reply" v-for="reply in comment.replies" :key="reply.id">
-                    <div class="reply-author">{{ reply.author }}</div>
-                    <div class="reply-text">{{ reply.text }}</div>
+                <div class="reply" v-for="reply in comment.comment_comment" :key="reply.comment_id">
+                    <div class="reply-author">
+                        <h5>{{ reply.UserName }}</h5>
+                    </div>
+                    <div class="reply-text"><h5>{{ reply.content }}</h5></div>
                 </div>
             </div>
         </div>
@@ -53,7 +56,7 @@
     new Vue({
         el: '#post-app',
         data: {
-            post:[],
+            posts:[],
             post: {
                 post_id:1,
                 title: '示例帖子标题',
@@ -135,7 +138,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             this.post_id = urlParams.get('postID');
             var _this = this;
-            axios.post("/User/FindPost", {"post_id":this.post_id}).then((response) => {
+            axios.post("/User/Find/OnePost", {"post_id":this.post_id}).then((response) => {
                _this.posts = response.data;
             })
         }

@@ -31,10 +31,12 @@
 
         <!-- 用户信息卡片 -->
         <div class="user-info" v-if="currentPage === 'profile'">
-            <img :src="user.avatar" alt="用户头像">
-            <h2>{{ user.username }}</h2>
-            <p>昵称：{{ user.nickname }}</p>
-            <p>用户类型：{{ user.userType }}</p>
+            <img :src="user.image" alt="用户头像">
+            <h2>{{ user.UserName }}</h2>
+            <p>ID：{{ user.user_id }}</p>
+            <p>用户类型：{{ (user.admin)?'管理员':'普通用户' }}</p>
+            <p>粉丝数：{{user.user_likes}}</p>
+            <p>创建时间:{{user.create_time}}</p>
         </div>
         <!-- 关注的用户 -->
         <div class="follow-section" v-if="currentPage === 'followedUsers'">
@@ -47,7 +49,7 @@
         <div class="follow-section" v-if="currentPage === 'followedSections'">
             <h3>关注的板块</h3>
             <ul>
-                <li  v-for="section in followedSections" :key="section">{{ section }}</li>
+                <li  v-for="section in followedSections" :key="section" @click="InBoard(section.board_id)">{{ section.title }}</li>
             </ul>
         </div>
         <!-- 用户看过的帖子 -->
@@ -66,12 +68,7 @@
         el: '#app',
         data: {
             currentPage: 'profile',
-            user: {
-                avatar: '',
-                username: '用户名',
-                nickname: '用户昵称',
-                userType: '普通用户'
-            },
+            user: {},
             followedUsers: ['用户1', '用户2', '用户3'],
             followedSections: ['AI', '区块链', 'Web开发'],
             posts: [
@@ -91,7 +88,8 @@
                     likes: 8,
                     collects: 3
                 }
-            ]
+            ],
+            post:[],
 
 
         },
@@ -101,7 +99,7 @@
             },
 
             openHome() {
-                window.location.replace("../View/Home.html");
+                window.location.assign("../View/Home.html")
             },
 
             showPost(post_id) {
@@ -116,6 +114,20 @@
                 }
                 return '';
             }
+        },
+        beforeMount() {
+            const urlParams = new URLSearchParams(window.location.search);
+            this.user.user_id = urlParams.get('user_id');
+
+            _this = this;
+
+            axios.post("/User/Find/OneUser").then((response) => {
+                _this.user = response.data;
+            })
+
+            axios.post('../User/Find/HistoryPost',{post_id: _this.user_id}).then((response) => {
+
+            })
         }
     });
 </script>

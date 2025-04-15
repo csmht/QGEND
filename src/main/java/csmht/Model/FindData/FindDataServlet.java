@@ -105,7 +105,7 @@ public interface FindDataServlet {
      * @param req
      * @param resp
      */
-    public void ManyUser(HttpServletRequest req, HttpServletResponse resp);
+    public void ManyUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 
     /**
      * 查找单个用户
@@ -113,7 +113,18 @@ public interface FindDataServlet {
      * @param req
      * @param resp
      */
-    public void OneUser(HttpServletRequest req, HttpServletResponse resp);
+    public void OneUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 
+    /**
+     * 寻找评论评论
+     * @param req
+     * @param resp
+     * @throws SQLException
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public void CommComment(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
+
+    public void HistoryPost(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 
 }
