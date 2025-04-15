@@ -5,7 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
 
-public interface FindDataServlet {
+public interface FindDataService {
 
     /**
      * 用户
@@ -125,6 +125,53 @@ public interface FindDataServlet {
      */
     public void CommComment(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 
+    /**
+     * 查看历史帖子
+     * @param req
+     * @param resp
+     * @throws SQLException
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public void HistoryPost(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 
+    /**
+     * 查找关注用户
+     * @param req
+     * @param resp
+     * @throws SQLException
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public void FollowUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
+
+    /**
+     * 查找关注板块
+     * @param req
+     * @param resp
+     * @throws SQLException
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public void FollowBoard(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
+
+    /**
+     * 查找喜欢帖子
+     * @param req
+     * @param resp
+     * @throws SQLException
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public void LikePost(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
+
+    /**
+     * 查找我的信息
+     * @param req
+     * @param resp
+     * @throws SQLException
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public void MyUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 }

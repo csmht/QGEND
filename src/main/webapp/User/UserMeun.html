@@ -48,9 +48,12 @@
         <!-- 关注的板块 -->
         <div class="follow-section" v-if="currentPage === 'followedSections'">
             <h3>关注的板块</h3>
-            <ul>
-                <li  v-for="section in followedSections" :key="section" @click="InBoard(section.board_id)">{{ section.title }}</li>
-            </ul>
+
+            <div v-for="section in followedSections" :key="section" @click="InBoard(section.board_id)">
+                    <h4>{{ section.board.title }}</h4>
+                    <h5>{{ section.board.content | truncate}}</h5>
+            </div>
+
         </div>
         <!-- 用户看过的帖子 -->
         <div v-if="currentPage === 'postHistory'">
@@ -121,13 +124,17 @@
 
             _this = this;
 
-            axios.post("/User/Find/OneUser").then((response) => {
+            axios.post("/User/Find/MyUser",{
+                user_id: _this.user.user_id,
+            }).then((response) => {
                 _this.user = response.data;
+                _this.followedUsers = _this.user.follow_user;
+                _this.followedSections = _this.user.follow_board;
             })
 
-            axios.post('../User/Find/HistoryPost',{post_id: _this.user_id}).then((response) => {
-
-            })
+            // axios.post('../User/Find/HistoryPost',{post_id: _this.user_id}).then((response) => {
+            //
+            // })
         }
     });
 </script>

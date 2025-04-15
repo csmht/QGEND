@@ -1,10 +1,7 @@
 package csmht.Model.FindData;
 
 import com.alibaba.fastjson2.JSON;
-import csmht.Dao.ClassObject.Board;
-import csmht.Dao.ClassObject.Comment;
-import csmht.Dao.ClassObject.Post;
-import csmht.Dao.ClassObject.User;
+import csmht.Dao.ClassObject.*;
 import csmht.Dao.JDBC;
 import csmht.Dao.Pool;
 import csmht.View.UserBaseServlet;
@@ -26,7 +23,7 @@ import static csmht.Dao.Constant.New;
 
 
 @WebServlet("/User/Find/*")
-public class FindDataImpl extends UserBaseServlet implements FindDataServlet {
+public class FindDataImpl extends UserBaseServlet implements FindDataService {
 
 
     private void Boar(HttpServletRequest req, HttpServletResponse resp, String key0, String sort) throws IOException, SQLException, InterruptedException {
@@ -404,6 +401,60 @@ public class FindDataImpl extends UserBaseServlet implements FindDataServlet {
     }
 
     @Override
+    public void MyUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+        BufferedReader one = req.getReader();
+        String oneLine = one.readLine();
+        User Json = JSON.parseObject(oneLine, User.class);
+        Connection con = Pool.Pool.getPool();
+        String sort = Hot;
+        User user = new User();
+        ResultSet rs = null;
+
+        if(Json == null || Json.getUser_id() == -1) {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        user = csmht.Dao.Find.FindUser(con,"user_id",String.valueOf(Json.getUser_id()),"");
+
+        String[] main = {"user","user_like","user_follow","board_follow"};
+        String[] hot = {"user.user_id","user_like.user_id","user_follow.user_id","board_follow.user_id"};
+        String[] key = {"user.user_id"};
+        String[] value = {Json.getUser_id()+""};
+
+        rs = JDBC.find(con,main,hot,key,value,"");
+
+        while (rs.next()) {
+            String post_id = rs.getString("post_id");
+            String board_id = rs.getString("board_id");
+            String user_id = rs.getString("follower_id");
+
+            if(post_id!=null){
+              LikePost post =  new LikePost(csmht.Dao.Find.FindPost(con,"post_id",post_id,""),rs.getString("user_like.create_time"));
+              user.addLikePost(post);
+            }
+            if(board_id!=null){
+              FollowBoard board = new FollowBoard(csmht.Dao.Find.FindBoard(con,"board_id",board_id,""), rs.getString("follow_time"));  ;
+              user.addFollowBoard(board);
+            }
+            if(user_id!=null){
+               FollowUser user1 = new FollowUser(csmht.Dao.Find.FindUser(con,"user_id",user_id,""),rs.getString("follow_time")) ;
+               user.addFollowUser(user1);
+            }
+
+        }
+
+
+            rs.close();
+
+
+        String json = JSON.toJSONString(user);
+        PrintWriter writer = resp.getWriter();
+        writer.write(json);
+        writer.close();
+    }
+
+    @Override
     public void CommComment(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
         BufferedReader one = req.getReader();
         String oneLine = one.readLine();
@@ -499,4 +550,56 @@ public class FindDataImpl extends UserBaseServlet implements FindDataServlet {
         writer.write(json);
         writer.close();
     }
+
+    @Override
+    public void FollowUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+        BufferedReader one = req.getReader();
+        String oneLine = one.readLine();
+
+        User Json = JSON.parseObject(oneLine, User.class);
+
+        Connection con = Pool.Pool.getPool();
+
+
+        List<User> user = new ArrayList<>();
+
+        ResultSet rs = null;
+
+
+        try {
+            con.setAutoCommit(false);
+
+            String[] main = {"user_follow"};
+            String[] hot = {};
+            String[] key = {"user_id"};
+            String[] value = {String.valueOf(Json.getUser_id())};
+
+
+//            rs = JDBC.find(con,);
+
+
+
+            con.commit();
+        }catch (Exception e){
+            if(rs != null){
+                rs.close();
+            }
+            con.rollback();
+            e.printStackTrace();
+        }
+
+
+    }
+
+    @Override
+    public void FollowBoard(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+
+    }
+
+    @Override
+    public void LikePost(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+
+    }
+
+
 }
