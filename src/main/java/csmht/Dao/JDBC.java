@@ -40,7 +40,7 @@ public class JDBC {
         }
         sql.append(" from ").append(main[0]).append(" ");
         for(int i = 1; i < sub.length; i++) {
-            sql.append(" LEFT join ").append(main[i]).append(" on ").append(sub[0]).append(" = ").append(sub[i]);
+            sql.append(" LEFT join ").append(main[i]).append(" on ").append(sub[i]).append(" = ").append(sub[0]);
         }
         sql.append(" ");
 

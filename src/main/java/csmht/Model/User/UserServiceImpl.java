@@ -165,14 +165,31 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
 
         try{
 
+            String[] main = {"user_like"};
+            String[] mun = {};
+            String[] key = {"user_id","post_id"};
+            String[] value = {Json.getUser_id()+"",Json.getPost_id()+""};
+
+//            rs = JDBC.find()
+//
+//
+//
+//
+//
+//            con.setAutoCommit(false);
+//
+//            String[] key = {"user_id","board_id","title","content","create_time",};
+//            Object[] value = {Json.getUser_id()+"",Json.getPost_id()+""};
+
+            JDBC.add(con,"post",key,value);
 
 
 
-
+            con.commit();
         }catch (Exception e){
 
-
-
+            e.printStackTrace();
+            con.rollback();
         }finally {
 
 

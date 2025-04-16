@@ -85,7 +85,7 @@ public interface UserService {
 
     /**
      * 发帖
-     * user_id board_id
+     * user_id board_id content title image[9] create_time
      * @param req
      * @param res
      * @throws SQLException

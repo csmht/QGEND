@@ -16,6 +16,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static csmht.Dao.Constant.Hot;
@@ -440,6 +441,13 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         String[] value = {Json.getUser_id()+""};
 
         rs = JDBC.find(con,main,hot,key,value,"");
+        Connection con2 = Pool.Pool.getPool();
+
+        List<Integer> postID = new LinkedList<Integer>();
+        List<Integer> boardID = new LinkedList<>();
+        List<Integer> viewID = new LinkedList<>();
+        List<Integer> userID = new LinkedList<>();
+
 
         while (rs.next()) {
             String post_id = rs.getString("user_like.post_id");
@@ -447,29 +455,36 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String user_id = rs.getString("follower_id");
             String history_id = rs.getString("view_history.post_id");
 
-            if(post_id!=null){
-              LikePost post =  new LikePost(csmht.Dao.Find.FindPost(con,"post_id",post_id,""),rs.getString("user_like.create_time"));
+
+
+            if(post_id!=null&& !postID.contains(rs.getInt("user_like.post_id"))){
+              LikePost post =  new LikePost(csmht.Dao.Find.FindPost(con2,"post_id",post_id,""),rs.getString("user_like.create_time"));
+              postID.add(rs.getInt("user_like.post_id"));
               user.addLikePost(post);
             }
-            if(board_id!=null){
-              FollowBoard board = new FollowBoard(csmht.Dao.Find.FindBoard(con,"board_id",board_id,""), rs.getString("board_follow.follow_time"));  ;
+            if(board_id!=null&& !boardID.contains(rs.getInt("board_id"))){
+              FollowBoard board = new FollowBoard(csmht.Dao.Find.FindBoard(con2,"board_id",board_id,""), rs.getString("board_follow.follow_time"));  ;
+              boardID.add(rs.getInt("board_id"));
               user.addFollowBoard(board);
             }
-            if(user_id!=null){
-               FollowUser user1 = new FollowUser(csmht.Dao.Find.FindUser(con,"user_id",user_id,""),rs.getString("user_follow.follow_time")) ;
+            if(user_id!=null&& !userID.contains(rs.getInt("follower_id"))){
+               FollowUser user1 = new FollowUser(csmht.Dao.Find.FindUser(con2,"user_id",user_id,""),rs.getString("user_follow.follow_time")) ;
+               userID.add(rs.getInt("follower_id"));
                user.addFollowUser(user1);
             }
-            if(history_id!=null){
-                HistoryPost post = new HistoryPost(csmht.Dao.Find.FindPost(con,"post_id",history_id,""),rs.getString("view_time"));
+            if(history_id!=null&&!viewID.contains(rs.getInt("view_history.post_id"))){
+                HistoryPost post = new HistoryPost(csmht.Dao.Find.FindPost(con2,"post_id",history_id,""),rs.getString("view_time"));
+                viewID.add(rs.getInt("view_history.post_id"));
                 user.addHistoryPost(post);
             }
+
 
         }
 
 
         rs.close();
         Pool.Pool.returnConn(con);
-
+        Pool.Pool.returnConn(con2);
         String json = JSON.toJSONString(user);
         PrintWriter writer = resp.getWriter();
         writer.write(json);

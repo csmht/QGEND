@@ -17,7 +17,7 @@ public class Pool {
     private static final String password = "0603";
     static int minPool = 1;
     static int maxPool = 5;
-    static long maxTime = 1000;
+    static long maxTime = 5000;
     static connTime connTime = new connTime();
 
     static {
