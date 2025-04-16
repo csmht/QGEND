@@ -15,7 +15,7 @@
 <div id="module-app">
     <div class="module-container">
         <div class="module-info">
-            <img :src="board.image" >
+            <img :src="board.image">
             <h1>{{ board.title }}</h1>
             <h2>创建者: {{ board.UserName }}</h2>
             <p>简介：{{board.content}}</p>
@@ -26,10 +26,12 @@
             <button @click="followModule">关注 ({{ module.followers }})</button>
             <button @click="reportModule">举报</button>
             <button @click="createPost">发帖</button>
+            <!-- 添加切换按钮 -->
+            <button @click="togglePostSort">{{ sortMode === 'latest' ? '显示最热帖子' : '显示最新帖子' }}</button>
         </div>
         <div class="posts-list">
             <h2>模块内帖子 ()</h2>
-            <div class="post" v-for="post in board.post" :key="post.id">
+            <div class="post" v-for="post in sortedPosts" :key="post.id">
                 <h3>{{ post.title }}</h3>
                 <p>发帖人: {{ post.user_id }}</p>
                 <p>喜欢人数: {{ post.likes }}</p>
@@ -53,16 +55,19 @@
                 creator: '示例创建者',
                 followers: 10,
                 create_time: '0',
-                post: [
-                    {
-                        "id": -1,
-                        "title": "000",
-                        "user_id": "null",
-                        "likes": "0"
-                    }
-                ]
+                post: []
             },
-            board: {}
+            board: {},
+            sortMode: 'latest' // 初始显示最新帖子
+        },
+        computed: {
+            sortedPosts() {
+                if (this.sortMode === 'latest') {
+                    return this.board.post.slice().sort((a, b) => new Date(b.create_time) - new Date(a.create_time));
+                } else {
+                    return this.board.post.slice().sort((a, b) => b.likes - a.likes);
+                }
+            }
         },
         methods: {
             followModule() {
@@ -78,6 +83,10 @@
             // 举报帖子方法
             reportPost(postId) {
                 alert(`你已举报帖子 ID 为 ${postId} 的帖子，我们会尽快处理。`);
+            },
+            // 切换显示模式
+            togglePostSort() {
+                this.sortMode = this.sortMode === 'latest' ? 'hot' : 'latest';
             }
         },
         beforeMount() {
@@ -88,6 +97,8 @@
                 _this.board = response.data;
                 _this.board.image = `data:image/jpeg;base64,${_this.board.image}`;
             })
+
+
         },
         filters: {
             truncate(value) {

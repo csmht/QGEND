@@ -45,20 +45,24 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] value = null;
 
             key = new String[]{key0};
-            if (Json == null || Json.getTitle() == null) {
+            if (Json == null ||(Json.getBoard_id() == -1&&Json.getUser_id() == -1&&Json.getTitle() != null)) {
                 key = new String[]{};
                 value = new String[]{};
             } else if (key0.equals("title")) {
+                key = new String[]{"board.title"};
                 value = new String[]{"'%" + Json.getTitle() + "'%"};
 
             } else if (key0.equals("user_id")) {
                 value = new String[]{String.valueOf(Json.getUser_id())};
+                key = new String[]{"user.user_id"};
 
             } else if (key0.equals("board_id")) {
                 value = new String[]{String.valueOf(Json.getBoard_id())};
+                key = new String[]{"board_id"};
 
             } else {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                Pool.Pool.returnConn(con);
                 return;
             }
 
@@ -75,6 +79,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             con.rollback();
             e.printStackTrace();
         } finally {
+            Pool.Pool.returnConn(con);
             if (rs != null) {
                 rs.close();
             }
@@ -152,6 +157,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             if (rs != null) {
                 rs.close();
             }
+            Pool.Pool.returnConn(con);
         }
 
         String json = JSON.toJSONString(board);
@@ -200,17 +206,20 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] key = null;
             String[] value = null;
             key = new String[]{key0};
-            if (Json == null || Json.getTitle() == null) {
+            if (Json == null ||(Json.getPost_id() == -1&&Json.getUser_id() == -1&&Json.getTitle() != null)) {
                 key = new String[]{};
                 value = new String[]{};
             } else if (key0.equals("title")) {
                 value = new String[]{"%" + Json.getTitle() + "%"};
+                key = new String[]{"board_id"};
 
-            } else if (key0.equals("user.user_id")) {
+            } else if (key0.equals("user_id")) {
                 value = new String[]{String.valueOf(Json.getUser_id())};
+                key = new String[]{"user.user_id"};
 
             } else if (key0.equals("post_id")) {
                 value = new String[]{String.valueOf(Json.getPost_id())};
+                key = new String[]{"post_id"};
 
             } else {
                     resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
@@ -231,6 +240,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             con.rollback();
             e.printStackTrace();
         } finally {
+            Pool.Pool.returnConn(con);
             if (rs != null) {
                 rs.close();
             }
@@ -293,8 +303,8 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
                 return;
             } else {
-                key = new String[]{};
-                value = new String[]{};
+                key = new String[]{"post_id"};
+                value = new String[]{Json.getPost_id() + ""};
             }
 
             rs = JDBC.find(con, main, hot, key, value,Hot);
@@ -323,6 +333,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             if (rs != null) {
                 rs.close();
             }
+            Pool.Pool.returnConn(con);
         }
 
         String json = JSON.toJSONString(post);
@@ -382,6 +393,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             if (rs != null) {
                 rs.close();
             }
+            Pool.Pool.returnConn(con);
         }
         String json = null;
         if(sort.isEmpty()){
@@ -415,7 +427,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         User user = new User();
         ResultSet rs = null;
 
-        if(Json == null || Json.getUser_id() == -1) {
+        if(Json == null || (Json.getUser_id() == -1)) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
@@ -456,7 +468,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
 
 
         rs.close();
-
+        Pool.Pool.returnConn(con);
 
         String json = JSON.toJSONString(user);
         PrintWriter writer = resp.getWriter();
@@ -505,6 +517,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             con.rollback();
             e.printStackTrace();
         } finally {
+            Pool.Pool.returnConn(con);
             if (rs != null) {
                 rs.close();
             }
@@ -552,6 +565,11 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         }catch (Exception e){
             con.rollback();
             e.printStackTrace();
+        }finally {
+            if (rs != null) {
+                rs.close();
+            }
+            Pool.Pool.returnConn(con);
         }
 
 

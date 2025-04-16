@@ -158,7 +158,7 @@
                 axios.post("/User/Service/ChangeUser",{
                     user_id: this.user.user_id,
                     UserName: this.editUser.UserName,
-                    Email: this.editUser.email,
+                    Email: this.editUser.Email,
                     image: this.editUser.image,
                 })
 
@@ -230,11 +230,10 @@
                 _this.editUser.UserName = _this.user.UserName;
                 _this.editUser.Email = _this.user.Email;
                 _this.user.image = `data:image/jpeg;base64,${_this.user.image}`;
-                // 假设接口返回我的帖子和我的模块数据
 
             })
 
-            axios.post("/User/Find/NameManyBoardHot",{
+            axios.post("/User/Find/UserManyBoardHot",{
                 user_id: _this.user.user_id,
             }).then((response) => {
                 _this.myModules = response.data;

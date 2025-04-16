@@ -7,9 +7,7 @@
     <title>帖子详情</title>
     <script src="../axios.min.js"></script>
     <script src="../vue.js"></script>
-
-        <link rel="stylesheet" href="../View/Post.css">
-
+    <link rel="stylesheet" href="../View/Post.css">
 </head>
 
 <body>
@@ -23,14 +21,17 @@
             <span>发布时间: {{ posts.create_time }}</span>
         </div>
         <div class="actions">
-            <button @click="likePost(posts.post_id)">点赞 ({{ posts.likes }})</button>
+            <!-- 根据 isLiked 状态显示不同的按钮文本和绑定不同的方法 -->
+            <button @click="isLiked ? cancelLikePost(posts.post_id) : likePost(posts.post_id)">
+                {{ isLiked ? '取消点赞 (' + posts.likes + ')' : '点赞 (' + posts.likes + ')' }}
+            </button>
         </div>
         <div class="comments">
             <h2>评论 ()</h2>
             <div class="comment" v-for="comment in posts.PostComment" :key="comment.comment_id">
                 <div class="comment-author">{{ comment.UserName }}</div>
                 <div class="comment-text">{{ comment.content }}
-                <h6>{{comment.create_time}}</h6>
+                    <h6>{{comment.create_time}}</h6>
                 </div>
                 <button @click="showReplyInput(comment)">回复</button>
                 <div class="reply-section" v-if="comment.showReplyInput">
@@ -56,54 +57,38 @@
     new Vue({
         el: '#post-app',
         data: {
-            posts:[],
-            post: {
-                post_id:1,
-                title: '示例帖子标题',
-                content: '这是一个示例帖子的内容，包含详细的文字描述。',
-                image: 'https://picsum.photos/800/400',
-                publisher: {
-                    user_id: 1,
-                    name: '示例发布者',
-                    postTime: '2025-04-13 12:00'
-                },
-                likes: 10,
-                collects: 5
-            },
-            comments: [
-                {
-                    comments_id: 1,
-                    author: '用户1',
-                    text: '这篇帖子很有价值！',
-                    showReplyInput: false,
-                    replyText: '',
-                    replies: [
-                        {
-                            id: 11,
-                            author: '用户2',
-                            text: '确实如此！'
-                        }
-                    ]
-                },
-                {
-                    comments_id: 2,
-                    author: '用户2',
-                    text: '写得不错，继续加油！',
-                    showReplyInput: false,
-                    replyText: '',
-                    replies: []
-                }
-            ],
-            newCommentText: ''
+            posts: [],
+            post: {},
+            comments: [],
+            newCommentText: '',
+            isLiked: false // 新增状态，用于追踪是否已点赞
         },
         methods: {
             likePost(post_id) {
-
-                axios.post("/User/Service/LikePost",{
+                let _this = this;
+                axios.post("/User/Service/Like", {
                     post_id: post_id,
+                }).then(res => {
+                    if (res.data == "Yet") {
+                        alert("你已经点赞过了");
+                    } else {
+                        _this.posts.likes++;
+                        _this.isLiked = true; // 更新点赞状态
+                    }
                 })
-
-
+            },
+            cancelLikePost(post_id) {
+                let _this = this;
+                axios.post("/User/Service/UnLike", {
+                    post_id: post_id,
+                }).then(res => {
+                    if (res.data == "NotLiked") {
+                        alert("你还没有点赞过");
+                    } else {
+                        _this.posts.likes--;
+                        _this.isLiked = false; // 更新点赞状态
+                    }
+                })
             },
             collectPost() {
                 this.post.collects++;
@@ -138,14 +123,24 @@
                 }
             }
         },
-
         beforeMount() {
             const urlParams = new URLSearchParams(window.location.search);
-            this.post_id = urlParams.get('postID');
-            var _this = this;
-            axios.post("/User/Find/OnePost", {"post_id":this.post_id}).then((response) => {
-               _this.posts = response.data;
+            this.post_id = urlParams.get('post_id');
+            let _this = this;
+            axios.post("/User/Find/OnePost", { "post_id": this.post_id }).then((response) => {
+                _this.posts = response.data;
             })
+
+            axios.post("/User/Service/isLike",{
+                "post_id": this.post_id
+            }).then((response) => {
+                if(response.data == "like"){
+                    _this.isLiked = true;
+                }else {
+                    _this.isLiked = false;
+                }
+            })
+
         }
     });
 </script>

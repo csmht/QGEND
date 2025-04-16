@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发帖页面</title>
+    <script src="../axios.min.js"></script>
+    <script src="../vue.js"></script>
+    <link rel="stylesheet" href="addPost.css">
+</head>
+
+<body>
+<div id="app" class="container">
+    <h1>发布新帖子</h1>
+    <form @submit.prevent="submitPost">
+        <!-- 帖子标题 -->
+        <div class="form-group">
+            <label for="title">帖子标题</label>
+            <input type="text" id="title" v-model="post.title" placeholder="请输入帖子标题">
+        </div>
+        <!-- 帖子内容 -->
+        <div class="form-group">
+            <label for="content">帖子内容</label>
+            <textarea id="content" rows="6" v-model="post.content" placeholder="请输入帖子内容"></textarea>
+        </div>
+        <!-- 帖子发布时间 -->
+        <div class="form-group">
+            <label for="publishTime">帖子发布时间</label>
+            <input type="datetime-local" id="publishTime" v-model="post.publishTime">
+        </div>
+        <!-- 图片上传 -->
+        <div class="form-group">
+            <label>帖子图片（最多 9 张）</label>
+            <input type="file" multiple @change="handleFileChange">
+            <div class="image-preview">
+                <div v-for="(image, index) in post.images" :key="index">
+                    <img :src="URL.createObjectURL(image)" alt="上传图片">
+                    <button @click="removeImage(index)">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <button type="submit">发布帖子</button>
+    </form>
+</div>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            post: {
+                title: '',
+                content: '',
+                publishTime: '',
+                images: []
+            }
+        },
+        methods: {
+            handleFileChange(e) {
+                const files = e.target.files;
+                for (let i = 0; i < files.length; i++) {
+                    if (this.post.images.length < 9) {
+                        this.post.images.push(files[i]);
+                    } else {
+                        alert('最多只能添加 9 张图片！');
+                        break;
+                    }
+                }
+            },
+            removeImage(index) {
+                this.post.images.splice(index, 1);
+            },
+            submitPost() {
+                console.log('发布的帖子信息:', this.post);
+                this.post = {
+                    title: '',
+                    content: '',
+                    publishTime: '',
+                    images: []
+                };
+            }
+        }
+    });
+</script>
+</body>
+
+</html>

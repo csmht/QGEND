@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Base64;
+import java.util.List;
 
 
 @WebServlet("/User/Service/*")
@@ -33,15 +34,15 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
     }
 
 
-    @Override
-    public void Like(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException {
 
+    private void Like(HttpServletRequest req, HttpServletResponse res,String sort) throws SQLException, InterruptedException, IOException {
         BufferedReader one = req.getReader();
         String oneLine = one.readLine();
         UserLike Json = JSON.parseObject(oneLine, UserLike.class);
 
         HttpSession session = req.getSession();
-        Json.setUser_id((Integer) session.getAttribute("id"));
+        int a  = Integer.parseInt(session.getAttribute("id").toString());
+        Json.setUser_id(a);
 
         Connection con = Pool.Pool.getPool();
         ResultSet rs = null;
@@ -56,29 +57,81 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
 
             rs =  JDBC.find(con,main,mun,key,value,"");
 
-            if(!rs.next()) {
-                rs = JDBC.find(con,"SELECT post* FROM post WHERE post_id = '?'",new String[]{Json.getPost_id()+""});
-                JDBC.update(con,"post",new String[]{"likes"},new String[]{String.valueOf((rs.getInt("likes")+1))},new String[]{"post_id"},new String[]{Json.getPost_id()+""});
-                JDBC.add(con,"user_like",new String[]{"user_id","post_id"},new String[]{Json.getUser_id()+"",Json.getPost_id()+""});
+            //返回是否喜欢
+            if(sort.equals("is")){
+                if(rs.next()){
+                    res.getWriter().write("like");
+                }else {
+                    res.getWriter().write("unlike");
+                }
+
+            }else {
+
+
+                if ((rs.next()&&sort.equals("unlike"))||(!rs.next()&&sort.equals("like"))) {
+
+                    rs = JDBC.find(con, "SELECT * FROM post WHERE post_id = ?", new String[]{Json.getPost_id() + ""});
+                    if (rs.next()) {
+                        String[] key1 = {"likes"};
+
+
+                        String[] value1 = {String.valueOf((rs.getInt("likes") + 1))};
+                        if (sort.equals("unlike")) {
+                            value1 = new String[]{String.valueOf((rs.getInt("likes") - 1))};
+                        }
+
+                        key = new String[]{"post_id"};
+                        value = new String[]{Json.getPost_id() + ""};
+
+                        JDBC.update(con, "post", key1, value1, key, value);
+
+                        key = new String[]{"user_id", "post_id"};
+                        value = new String[]{Json.getUser_id() + "", Json.getPost_id() + ""};
+
+
+                        if (sort.equals("unlike")) {
+                            JDBC.delete(con, "user_like", key, value);
+                        } else {
+                            JDBC.add(con, "user_like", key, value);
+                        }
+
+                    }
+                    res.setStatus(200);
+                }
+
             }
 
             con.commit();
-
         } catch (SQLException e) {
             con.rollback();
             e.printStackTrace();
-//            throw new RuntimeException(e);
+
         }finally {
-            rs.close();
+            if (rs != null) {
+                rs.close();
+            }
             Pool.Pool.returnConn(con);
         }
 
 
+
+
+    }
+
+
+    @Override
+    public void Like(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException {
+        Like(req,res,"like");
     }
 
     @Override
-    public void UnLike(HttpServletRequest req, HttpServletResponse res) throws SQLException {
+    public void isLike(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException {
+        Like(req,res,"is");
+    }
 
+    @Override
+    public void UnLike(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException {
+        Like(req,res,"unlike");
     }
 
     @Override
@@ -98,7 +151,34 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
     }
 
     @Override
-    public void AddPost(HttpServletRequest req, HttpServletResponse res) throws SQLException {
+    public void AddPost(HttpServletRequest req, HttpServletResponse res) throws SQLException, InterruptedException, IOException {
+        BufferedReader one = req.getReader();
+        String oneLine = one.readLine();
+        Post Json = JSON.parseObject(oneLine, Post.class);
+
+        HttpSession session = req.getSession();
+        int a  = Integer.parseInt(session.getAttribute("id").toString());
+        Json.setUser_id(a);
+
+        Connection con = Pool.Pool.getPool();
+        ResultSet rs = null;
+
+        try{
+
+
+
+
+
+        }catch (Exception e){
+
+
+
+        }finally {
+
+
+            Pool.Pool.returnConn(con);
+        }
+
 
     }
 
@@ -133,7 +213,7 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
         String oneLine = one.readLine();
         User Json = JSON.parseObject(oneLine, User.class);
         Connection con = Pool.Pool.getPool();
-        ResultSet rs = null;
+
 
         try{
 
@@ -173,6 +253,9 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
         }catch (SQLException e) {
             con.rollback();
             e.printStackTrace();
+        }finally {
+            Pool.Pool.returnConn(con);
+
         }
     }
 

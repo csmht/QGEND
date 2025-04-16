@@ -45,6 +45,8 @@ public interface UserService {
      */
     public void Like(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException;
 
+    public void isLike(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException;
+
     /**
      * 取消喜欢帖子
      * user_id  post_id
@@ -52,7 +54,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UnLike(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void UnLike(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException;
 
     /**
      * 关注用户
@@ -88,7 +90,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void AddPost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void AddPost(HttpServletRequest req, HttpServletResponse res) throws SQLException, InterruptedException, IOException;
 
     /**
      * 删贴

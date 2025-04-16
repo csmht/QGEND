@@ -35,6 +35,7 @@ public class loginFilter implements Filter {
         String pd = "false";
         try {
             if(sei.getAttribute("id")!=null){
+                System.out.println(sei.getAttribute("id"));
                     pd = "true";
             }else{pd="pass";}
         } catch (Exception e) {

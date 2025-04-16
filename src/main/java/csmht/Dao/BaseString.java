@@ -1,5 +1,7 @@
 package csmht.Dao;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 
 public class BaseString {
@@ -15,6 +17,14 @@ public class BaseString {
         imageBase64 = imageBase64.replaceAll("\r|\n", "");
         imageBase64 = imageBase64.trim();
         return decoder.decode(imageBase64);
+    }
+
+    public static String getTime(){
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        return currentDateTime.format(formatter);
     }
 
 }
