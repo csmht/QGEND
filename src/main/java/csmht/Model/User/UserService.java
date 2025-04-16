@@ -101,8 +101,7 @@ public interface UserService {
 
     /**
      * 申请模块
-     * user_id
-     * Board
+     * user_id   boardName
      * @param req
      * @param res
      * @throws SQLException
@@ -111,7 +110,7 @@ public interface UserService {
 
     /**
      * 删除模块
-     * board_id
+     * user_id board_id
      * @param req
      * @param res
      * @throws SQLException
@@ -120,7 +119,7 @@ public interface UserService {
 
     /**
      * 评论帖子
-     * comment_id
+     * user_id comment_id
      * @param req
      * @param res
      * @throws SQLException
@@ -129,10 +128,22 @@ public interface UserService {
 
     /**
      * 删除帖子评论
-     * comment_id
+     * user_id comment_id
      * @param req
      * @param res
      * @throws SQLException
      */
     public void DeleteCommentToPost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+
+    /**
+     * 修改用户信息
+     * User_id userName Email image
+     * @param req
+     * @param res
+     * @throws SQLException
+     */
+    public void ChangeUser(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException;
+
+
+
 }

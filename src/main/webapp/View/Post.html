@@ -23,7 +23,7 @@
             <span>发布时间: {{ posts.create_time }}</span>
         </div>
         <div class="actions">
-            <button @click="likePost">点赞 ({{ posts.likes }})</button>
+            <button @click="likePost(posts.post_id)">点赞 ({{ posts.likes }})</button>
         </div>
         <div class="comments">
             <h2>评论 ()</h2>
@@ -97,8 +97,13 @@
             newCommentText: ''
         },
         methods: {
-            likePost() {
-                this.post.likes++;
+            likePost(post_id) {
+
+                axios.post("/User/Service/LikePost",{
+                    post_id: post_id,
+                })
+
+
             },
             collectPost() {
                 this.post.collects++;

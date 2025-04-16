@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import static csmht.Dao.Constant.New;
@@ -72,7 +73,8 @@ public class Find {
                 byte[] image = new byte[inputStream.available()];
                 inputStream.read(image);
                 inputStream.close();
-                post.addImage(image);
+                String base64String = Base64.getEncoder().encodeToString(image);
+                post.addImage(base64String);
             }
         }
 
@@ -119,7 +121,8 @@ public class Find {
                 byte[] image = new byte[inputStream.available()];
                 inputStream.read(image);
                 inputStream.close();
-                board.setImage(image);
+                String base64String = Base64.getEncoder().encodeToString(image);
+                board.setImage(base64String);
             }
 
 
@@ -168,7 +171,8 @@ public class Find {
                 byte[] image = new byte[inputStream.available()];
                 inputStream.read(image);
                 inputStream.close();
-                user.setImage(image);
+                String base64String = Base64.getEncoder().encodeToString(image);
+                user.setImage(base64String);
             }
 
 

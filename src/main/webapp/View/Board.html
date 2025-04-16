@@ -15,8 +15,10 @@
 <div id="module-app">
     <div class="module-container">
         <div class="module-info">
+            <img :src="board.image" >
             <h1>{{ board.title }}</h1>
-            <p>创建者: {{ board.creator }}</p>
+            <h2>创建者: {{ board.UserName }}</h2>
+            <p>简介：{{board.content}}</p>
             <p>关注人数: {{ board.likes }}</p>
         </div>
         <!-- 添加发帖按钮 -->
@@ -80,10 +82,11 @@
         },
         beforeMount() {
             const urlParams = new URLSearchParams(window.location.search);
-            this.board_id = urlParams.get('boardID');
+            this.board_id = urlParams.get('board_id');
             var _this = this;
             axios.post("/User/Find/OneBoard", { "board_id": this.board_id }).then((response) => {
                 _this.board = response.data;
+                _this.board.image = `data:image/jpeg;base64,${_this.board.image}`;
             })
         },
         filters: {

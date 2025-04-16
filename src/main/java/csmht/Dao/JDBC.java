@@ -75,7 +75,9 @@ public class JDBC {
      * @return
      * @throws SQLException
      */
-    public static int add(Connection conn,String main,String[] key,String[] val) throws SQLException {
+    public static int add(Connection conn,String main,String[] key,Object[] val) throws SQLException {
+
+
 
         StringBuilder sql = new StringBuilder("insert into ");
         sql.append(main).append(" (");
@@ -85,11 +87,18 @@ public class JDBC {
         }
         sql.append(") values (");
         for(int i =0; i < val.length; i++) {
-            sql.append("'").append(val[i]).append("'");
+            sql.append(" ? ");
             if(i!=val.length-1) sql.append(",");
         }
         sql.append(")");
-        return conn.prepareStatement(sql.toString()).executeUpdate();
+
+        PreparedStatement ps = conn.prepareStatement(sql.toString());
+
+        for(int i =0; i < val.length; i++) {
+            ps.setObject(i+1, val[i]);
+        }
+
+        return ps.executeUpdate();
     }
 
     /**
@@ -128,7 +137,7 @@ public class JDBC {
      * @return
      * @throws SQLException
      */
-    public static int update(Connection conn,String main,String[] key1,String[] val1,String[] key2,String[] val2) throws SQLException {
+    public static int update(Connection conn,String main,String[] key1,Object[] val1,String[] key2,String[] val2) throws SQLException {
         StringBuilder sql = new StringBuilder("update ");
         sql.append(main);
         sql.append(" set ");
@@ -137,17 +146,17 @@ public class JDBC {
             if(i!=key1.length-1) sql.append(",");
         }
         sql.append(" where ");
-        for(int i =0; i < val1.length; i++) {
+        for(int i =0; i < val2.length; i++) {
             sql.append(key2[i]).append(" = ?");
             if(i!=val2.length-1) sql.append(",");
         }
         PreparedStatement ps = conn.prepareStatement(sql.toString());
         int i =0;
         for(i =0; i < val1.length; i++) {
-            ps.setString(i+1, val2[i]);
+            ps.setObject(i+1, val1[i]);
         }
         for (int j=i; j < val2.length+i; j++) {
-            ps.setString(i+1, val1[j-i]);
+            ps.setObject(i+1, val2[j-i]);
         }
 
         return ps.executeUpdate();

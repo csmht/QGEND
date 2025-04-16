@@ -58,7 +58,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
                 value = new String[]{String.valueOf(Json.getBoard_id())};
 
             } else {
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
                 return;
             }
 
@@ -115,14 +115,14 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
 
 
             if (Json == null || Json.getBoard_id() == -1) {
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
                 return;
             }  else {
                 key = new String[]{"board_id"};
                 value = new String[]{String.valueOf(Json.getBoard_id())};
             }
 
-            rs = JDBC.find(con, main, hot, key, value,Hot);
+            rs = JDBC.find(con, main, hot, key, value , Hot);
 
             if (rs.next()) {
                 Board tow = new Board();
@@ -213,7 +213,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
                 value = new String[]{String.valueOf(Json.getPost_id())};
 
             } else {
-                    resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
                     return;
                 }
 
@@ -290,7 +290,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] value = null;
             key = new String[]{};
             if (Json == null || Json.getPost_id() == -1) {
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
                 return;
             } else {
                 key = new String[]{};
@@ -361,7 +361,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
                 sort = "";
                 value = new String[]{String.valueOf(Json.getUser_id())};
             }else {
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
                 return;
             }
 
@@ -416,7 +416,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         ResultSet rs = null;
 
         if(Json == null || Json.getUser_id() == -1) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
@@ -484,7 +484,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] value = null;
             key = new String[]{};
             if(Json == null || Json.getComment_Id() == -1) {
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
                 return;
             }else {
                 key=new String[]{"comment1_id"};
@@ -523,6 +523,11 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         String oneLine = one.readLine();
         Post Json = JSON.parseObject(oneLine, Post.class);
         Connection con = Pool.Pool.getPool();
+
+        if(Json == null || Json.getUser_id() == -1){
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
 
         List<Post> post = new ArrayList<>();
         ResultSet rs = null;

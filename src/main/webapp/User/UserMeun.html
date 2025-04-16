@@ -90,7 +90,7 @@
             <label for="username">用户名:</label>
             <input type="text" id="username" v-model="editUser.UserName">
             <label for="email">邮箱:</label>
-            <input type="email" id="email" v-model="editUser.email">
+            <input type="email" id="email" v-model="editUser.Email">
             <label for="avatar">上传头像:</label>
             <input type="file" @change="CloseImage" id="avatar">
             <button @click="saveChanges">保存</button>
@@ -109,13 +109,28 @@
             myPosts: [],
             myModules: [],
             editModalVisible: false,
-            editUser: {},
+            editUser: {
+                UserName: '',
+                Email: '',
+                image: '',
+            },
             image:null
         },
         methods: {
 
             CloseImage(event) {
-                this.image = event.target.files[0];
+                const file = event.target.files[0];
+
+                if (file!=null) {
+                    const a = file;
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        _this.editUser.image = e.target.result; // 将Base64数据存到变量b
+                    };
+                    reader.readAsDataURL(a);
+                }
+
+
             },
 
             showPage(page) {
@@ -138,12 +153,22 @@
                 this.editModalVisible = false;
             },
             saveChanges() {
-                // 这里可以添加保存修改的逻辑
-                // axios.post("")
+
+
+                axios.post("/User/Service/ChangeUser",{
+                    user_id: this.user.user_id,
+                    UserName: this.editUser.UserName,
+                    Email: this.editUser.email,
+                    image: this.editUser.image,
+                })
 
                 this.user = {...this.editUser};
                 this.editModalVisible = false;
             },
+
+
+
+
             deletePost(postId, event) {
                 event.stopPropagation();
                 if (confirm('确定要删除这个帖子吗？')) {
@@ -202,6 +227,9 @@
                 _this.followedUsers = _this.user.follow_user;
                 _this.followedSections = _this.user.follow_board;
                 _this.posts = _this.user.history_post;
+                _this.editUser.UserName = _this.user.UserName;
+                _this.editUser.Email = _this.user.Email;
+                _this.user.image = `data:image/jpeg;base64,${_this.user.image}`;
                 // 假设接口返回我的帖子和我的模块数据
 
             })

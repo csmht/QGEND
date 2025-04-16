@@ -35,7 +35,7 @@ public class Post extends UserClass {
     private List<Comment> comments = new ArrayList<>();
 
     @JSONField(name="image")
-    private List<byte[]> image = new ArrayList<>();
+    private List<String> image = new ArrayList<>();
 
     public int getPost_id() {
         return post_id;
@@ -105,17 +105,17 @@ public class Post extends UserClass {
         comments.add(comment);
     }
 
-   public List<byte[]> getImage() {
+  public List<String> getImage() {
         return image;
-   }
+  }
 
-   public void setImage(List<byte[]> image) {
+  public void setImage(List<String> image) {
         this.image = image;
-   }
+  }
 
-   public void addImage(byte[] image) {
+  public void addImage(String image) {
         this.image.add(image);
-   }
+  }
 
 
 }

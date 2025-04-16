@@ -23,7 +23,7 @@ public class User extends UserClass {
     private String pass;
 
     @JSONField(name="image")
-    private byte[] image;
+    private String image;
 
     @JSONField(name="create_time")
     private String create_time;
@@ -65,9 +65,9 @@ public class User extends UserClass {
 
     public void setPass(String pass) {this.pass = pass;}
 
-    public byte[] getImage() {return image;}
+    public String getImage() {return image;}
 
-    public void setImage(byte[] image) {this.image = image;}
+    public void setImage(String image) {this.image = image;}
 
     public String getCreate_time() {return create_time;}
 

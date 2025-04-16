@@ -23,7 +23,7 @@ public class Board extends UserClass {
     private String create_time;
 
     @JSONField(name="image")
-    private byte[] image;
+    private String image;
 
     @JSONField(name="post")
     private List<Post> post = new ArrayList<>();
@@ -82,12 +82,12 @@ public class Board extends UserClass {
         return post;
     }
 
-    public byte[] getImage() {
-        return image;
+    public void setImage(String image) {
+        this.image = image;
     }
 
-    public void setImage(byte[] image) {
-        this.image = image;
+    public String getImage() {
+        return image;
     }
 
     public int getLikes() {

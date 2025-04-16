@@ -21,60 +21,18 @@ import static csmht.Dao.Constant.Hot;
 public class text {
 
     public static void main(String[] args) throws SQLException, InterruptedException {
-
-        String key0 = "title";
-        Post Json = new Post();
-        Json.setPost_id(1);
-        Json.setUser_id(0);
-        Json.setTitle("测试");
         Connection con = Pool.Pool.getPool();
+        byte[] byteArray = {72, 101, 108, 108, 111};
 
-        List<Post> post = new ArrayList<Post>();
-        ResultSet rs = null;
-        try {
-            con.setAutoCommit(false);
+//        JDBC.add(con,"user",new String[]{"email","name","image"},new Object[]{"6666@66666","csmht",byteArray});
 
-            String[] main = {"post", "user"};
-            String[] hot = {"post.user_id", "user.user_id"};
+        String[] a = new String[]{"user_id"};
+        String[] b = new String[]{"676"};
+        byte[] pngHeader = { (byte) 137, 80, 78, 71, 13, 10, 26, 10 };
 
+//       JDBC.update(con,"user",new String[]{"email","name","image","password"},new Object[]{"789654123@33333","ttttttt",pngHeader,"77777"},a,b);
+//
 
-            String[] key = null;
-            String[] value = null;
-
-            if (Json == null || Json.getUserName() == null) {
-                key = new String[]{};
-                value = new String[]{};
-            } else if (key0.equals("title")) {
-                value = new String[]{Json.getTitle()};
-            } else if (key0.equals("user.name")) {
-                value = new String[]{String.valueOf(Json.getUser_id())};
-            } else if (key0.equals("post_id")) {
-                value = new String[]{String.valueOf(Json.getPost_id())};
-            } else {
-               System.out.println("no");
-               return;
-            }
-
-            rs = JDBC.find(con, main, hot, key, value,Hot);
-
-            while (rs.next()) {
-                Post tow = new Post();
-                tow = csmht.Dao.Find.FindPost(con, "post_id", rs.getString("post_id"),Hot);
-                post.add(tow);
-            }
-
-            con.commit();
-        } catch (Exception e) {
-            con.rollback();
-            e.printStackTrace();
-        } finally {
-            if (rs != null) {
-                rs.close();
-            }
-        }
-
-        String json = JSON.toJSONString(post);
-        System.out.println(json);
     }
 
 }
