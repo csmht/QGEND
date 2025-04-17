@@ -4,6 +4,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.ParseException;
 
 public interface UserService {
     /**
@@ -90,7 +91,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void AddPost(HttpServletRequest req, HttpServletResponse res) throws SQLException, InterruptedException, IOException;
+    public void AddPost(HttpServletRequest req, HttpServletResponse res) throws SQLException, InterruptedException, IOException, ParseException;
 
     /**
      * 删贴
@@ -99,7 +100,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void DeletePost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void DeletePost(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException;
 
     /**
      * 申请模块
@@ -108,7 +109,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void AddBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void AddBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, ParseException, InterruptedException;
 
     /**
      * 删除模块

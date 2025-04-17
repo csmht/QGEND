@@ -129,6 +129,8 @@
             let _this = this;
             axios.post("/User/Find/OnePost", { "post_id": this.post_id }).then((response) => {
                 _this.posts = response.data;
+                _this.posts.image = 'data:image/jpeg;base64,' + _this.posts.image;
+
             })
 
             axios.post("/User/Service/isLike",{

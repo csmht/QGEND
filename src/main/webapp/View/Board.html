@@ -31,13 +31,13 @@
         </div>
         <div class="posts-list">
             <h2>模块内帖子 ()</h2>
-            <div class="post" v-for="post in sortedPosts" :key="post.id">
-                <h3>{{ post.title }}</h3>
-                <p>发帖人: {{ post.user_id }}</p>
-                <p>喜欢人数: {{ post.likes }}</p>
+            <div class="post" v-for="post in sortedPosts" :key="post.id" >
+                <h3 @click="InPost(post.post_id)">{{ post.title }}</h3>
+                <p @click="InPost(post.post_id)">发帖人: {{ post.user_id }}</p>
+                <p @click="InPost(post.post_id)">喜欢人数: {{ post.likes }}</p>
 
-                <p class="post-content-preview">{{ post.content | truncate}}...</p>
-                <h5>发帖时间：{{post.create_time}}</h5>
+                <p @click="InPost(post.post_id)" class="post-content-preview">{{ post.content | truncate}}...</p>
+                <h5 @click="InPost(post.post_id)">发帖时间：{{post.create_time}}</h5>
                 <!-- 添加举报帖子按钮 -->
                 <button @click="reportPost(post.id)">举报该帖子</button>
             </div>
@@ -70,6 +70,9 @@
             }
         },
         methods: {
+            InPost(post_id) {
+                window.open(`../View/Post.html?post_id=${post_id}`, "_blank");
+            },
             followModule() {
                 this.module.followers++;
             },
@@ -78,7 +81,7 @@
             },
             // 发帖方法
             createPost() {
-                alert('你可以在这里实现发帖功能。');
+                location.assign(`../View/addPost.html?board_id=${this.board.board_id}&title=${this.board.title}`);
             },
             // 举报帖子方法
             reportPost(postId) {

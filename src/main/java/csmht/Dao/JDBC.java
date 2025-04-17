@@ -116,8 +116,8 @@ public class JDBC {
         sql.append(" where ");
         for(int i =0; i < key.length; i++) {
             sql.append(key[i]).append(" = ?");
-            if(i!=key.length-1){sql.append(",");
-            } else sql.append(" and ");
+            if(i!=key.length-1){sql.append(" and ");
+            }
         }
         PreparedStatement ps = conn.prepareStatement(sql.toString());
         for(int i =0; i < val.length; i++) {

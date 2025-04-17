@@ -57,26 +57,24 @@ public class Find {
             post.setLikes(rs.getInt("likes"));
             post.setViews(rs.getInt("views"));
             post.setCreate_time(rs.getString("create_time"));
-        }
 
-
-        main = new String[]{"post_image"};
-        sub = new String[]{};
-        key = new String[]{"post_id"};
-        value = new String[]{post.getPost_id()+""};
-
-        rs = JDBC.find(con,main,sub,key,value,"ORDER BY post_image_id DESC");
-
-        while (rs.next()) {
             InputStream inputStream = rs.getBinaryStream("image");
             if (inputStream != null) {
                 byte[] image = new byte[inputStream.available()];
                 inputStream.read(image);
                 inputStream.close();
                 String base64String = Base64.getEncoder().encodeToString(image);
-                post.addImage(base64String);
+                post.setImage(base64String);
             }
+
         }
+
+
+
+
+
+
+
 
 
         rs.close();

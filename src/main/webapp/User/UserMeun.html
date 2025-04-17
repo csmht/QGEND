@@ -9,6 +9,7 @@
     <script src="../axios.min.js"></script>
     <script src="../vue.js"></script>
 </head>
+
 <body>
 <div id="app">
     <header>
@@ -63,6 +64,8 @@
         <!-- 我的模块 -->
         <div v-if="currentPage === 'myModules'" >
             <h3>我的模块</h3>
+            <!-- 添加申请模块按钮 -->
+            <button @click="applyModule">申请模块</button>
             <!-- 这里可以添加显示模块的具体内容 -->
             <div v-for="module in myModules" :key="module.board_id" @click="InBoard(module.board_id)">
                 <h4>{{ module.title }}</h4>
@@ -114,14 +117,13 @@
                 Email: '',
                 image: '',
             },
-            image:null
+            image: null
         },
         methods: {
-
             CloseImage(event) {
                 const file = event.target.files[0];
 
-                if (file!=null) {
+                if (file!= null) {
                     const a = file;
                     const reader = new FileReader();
                     reader.onload = function (e) {
@@ -129,10 +131,7 @@
                     };
                     reader.readAsDataURL(a);
                 }
-
-
             },
-
             showPage(page) {
                 this.currentPage = page;
             },
@@ -153,9 +152,7 @@
                 this.editModalVisible = false;
             },
             saveChanges() {
-
-
-                axios.post("/User/Service/ChangeUser",{
+                axios.post("/User/Service/ChangeUser", {
                     user_id: this.user.user_id,
                     UserName: this.editUser.UserName,
                     Email: this.editUser.Email,
@@ -165,16 +162,12 @@
                 this.user = {...this.editUser};
                 this.editModalVisible = false;
             },
-
-
-
-
             deletePost(postId, event) {
                 event.stopPropagation();
                 if (confirm('确定要删除这个帖子吗？')) {
-                    axios.post('/deletePost', { postId: postId })
+                    axios.post('/User/Service/DeletePost', { post_id: postId })
                         .then(response => {
-                            if (response.data.success) {
+                            if (response.data == "OK") {
                                 this.myPosts = this.myPosts.filter(post => post.post_id!== postId);
                                 alert('帖子删除成功');
                             } else {
@@ -204,6 +197,11 @@
                             alert('删除模块时出现错误');
                         });
                 }
+            },
+            // 新增申请模块方法
+            applyModule() {
+                window.location.assign("../View/addBoard.html")
+                alert('你点击了申请模块按钮，后续可添加具体逻辑');
             }
         },
         filters: {
@@ -220,7 +218,7 @@
 
             _this = this;
 
-            axios.post("/User/Find/MyUser",{
+            axios.post("/User/Find/MyUser", {
                 user_id: _this.user.user_id,
             }).then((response) => {
                 _this.user = response.data;
@@ -233,13 +231,13 @@
 
             })
 
-            axios.post("/User/Find/UserManyBoardHot",{
+            axios.post("/User/Find/UserManyBoardHot", {
                 user_id: _this.user.user_id,
             }).then((response) => {
                 _this.myModules = response.data;
             })
 
-            axios.post("/User/Find/UserManyPostHot",{
+            axios.post("/User/Find/UserManyPostHot", {
                 user_id: _this.user.user_id,
             }).then((response) => {
                 _this.myPosts = response.data;
@@ -248,4 +246,5 @@
     });
 </script>
 </body>
+
 </html>

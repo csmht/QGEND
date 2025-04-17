@@ -1,11 +1,15 @@
 package csmht.Dao;
 
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.Date;
 
 public class BaseString {
-
+    public static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-M-dd HH:mm:ss");
     public BaseString bassString = new BaseString();
     
     public static byte[] getBase64(String imageBase64) {
@@ -19,12 +23,25 @@ public class BaseString {
         return decoder.decode(imageBase64);
     }
 
-    public static String getTime(){
-        LocalDateTime currentDateTime = LocalDateTime.now();
+    public static String getTime(String time) throws ParseException {
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        return currentDateTime.format(formatter);
+
+        String ans ;
+        if(time!=null) {
+            Date targetDate = sdf.parse(time);
+            Date currentDate = new Date();
+
+            if (targetDate.after(currentDate)) {
+                ans = targetDate.toString();
+            } else {
+                ans = currentDate.toString();
+            }
+        }else {
+            ans = new Date().toString();
+        }
+
+        return ans;
     }
 
 }

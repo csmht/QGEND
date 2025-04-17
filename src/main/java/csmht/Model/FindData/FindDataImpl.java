@@ -1,6 +1,7 @@
 package csmht.Model.FindData;
 
 import com.alibaba.fastjson2.JSON;
+import csmht.Dao.BaseString;
 import csmht.Dao.ClassObject.*;
 import csmht.Dao.JDBC;
 import csmht.Dao.Pool;
@@ -13,11 +14,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.util.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 import static csmht.Dao.Constant.Hot;
 import static csmht.Dao.Constant.New;
@@ -72,7 +71,9 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             while (rs.next()) {
                 Board tow = new Board();
                 tow = csmht.Dao.Find.FindBoard(con, "board_id", rs.getString("board_id"), sort);
-                board.add(tow);
+                if(tow.isPass()){
+                    board.add(tow);
+                }
             }
 
             con.commit();
@@ -133,6 +134,12 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             if (rs.next()) {
                 Board tow = new Board();
                 tow = csmht.Dao.Find.FindBoard(con, "board_id", rs.getString("board_id"),Hot);
+                if(!tow.isPass()){
+                    resp.sendError(403);
+                    Pool.Pool.returnConn(con);
+                    rs.close();
+                    return;
+                }
                 board = tow;
             }
 
@@ -143,12 +150,16 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             value = new String[]{String.valueOf(Json.getBoard_id())};
 
             rs = JDBC.find(con,main,hot,key,value,"ORDER BY post.likes DESC");
-
+            Connection con2 = Pool.Pool.getPool();
             while (rs.next()) {
                 Post tow = new Post();
-                tow = csmht.Dao.Find.FindPost(con, "post_id", rs.getString("post_id"),Hot);
+                tow = csmht.Dao.Find.FindPost(con2, "post_id", rs.getString("post_id"),Hot);
+                if(BaseString.sdf.parse(tow.getCreate_time()).after(new Date())) {
+                    continue;
+                }
                 board.addPost(tow);
             }
+            Pool.Pool.returnConn(con2);
 
             con.commit();
         } catch (Exception e) {
@@ -233,6 +244,9 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             while (rs.next()) {
                 Post tow = new Post();
                 tow = csmht.Dao.Find.FindPost(con, "post_id", rs.getString("post_id"), sort);
+                if(BaseString.sdf.parse(tow.getCreate_time()).after(new Date())) {
+                    continue;
+                }
                 post.add(tow);
             }
 
@@ -313,6 +327,10 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             if (rs.next()) {
                 Post tow = new Post();
                 tow = csmht.Dao.Find.FindPost(con, "post_id", rs.getString("post_id"),Hot);
+                if(BaseString.sdf.parse(tow.getCreate_time()).after(new Date())) {
+                    resp.sendError(403);
+                    return;
+                }
                 post = tow;
             }else {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND);

@@ -4,6 +4,7 @@ package csmht.Model.User;
 import com.alibaba.fastjson2.JSON;
 import com.mysql.cj.Session;
 import csmht.Dao.BaseString;
+import csmht.Dao.ClassObject.Board;
 import csmht.Dao.ClassObject.Post;
 import csmht.Dao.ClassObject.User;
 import csmht.Dao.ClassObject.UserLike;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.util.Base64;
 import java.util.List;
 
@@ -151,7 +153,7 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
     }
 
     @Override
-    public void AddPost(HttpServletRequest req, HttpServletResponse res) throws SQLException, InterruptedException, IOException {
+    public void AddPost(HttpServletRequest req, HttpServletResponse res) throws SQLException, InterruptedException, IOException, ParseException {
         BufferedReader one = req.getReader();
         String oneLine = one.readLine();
         Post Json = JSON.parseObject(oneLine, Post.class);
@@ -160,39 +162,66 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
         int a  = Integer.parseInt(session.getAttribute("id").toString());
         Json.setUser_id(a);
 
+        Json.setCreate_time(BaseString.getTime(Json.getCreate_time()));
+
+
         Connection con = Pool.Pool.getPool();
         ResultSet rs = null;
 
         try{
 
-            String[] main = {"user_like"};
+            String[] main = {"banned_user"};
             String[] mun = {};
-            String[] key = {"user_id","post_id"};
-            String[] value = {Json.getUser_id()+"",Json.getPost_id()+""};
+            String[] key = {"user_id","board_id"};
+            String[] value = {Json.getUser_id()+"",Json.getBoard_id()+""};
 
-//            rs = JDBC.find()
-//
-//
-//
-//
-//
-//            con.setAutoCommit(false);
-//
-//            String[] key = {"user_id","board_id","title","content","create_time",};
-//            Object[] value = {Json.getUser_id()+"",Json.getPost_id()+""};
+            rs = JDBC.find(con,main,mun,key, value,"");
 
-            JDBC.add(con,"post",key,value);
+            if(rs.next()){
+                    res.getWriter().write("ban");
+            }else {
+                Object[] value1;
+
+                con.setAutoCommit(false);
+
+                if(Json.getImage()!=null){
+                    String image = Json.getImage();
+
+                    byte[] imageByte = BaseString.getBase64(image);
 
 
 
-            con.commit();
+                    key = new String[]{"user_id", "board_id", "title", "content", "create_time","image"};
+                    value1 = new Object[]{Json.getUser_id() + "", Json.getBoard_id() + "", Json.getTitle(), Json.getContent(), Json.getCreate_time(),imageByte};
+
+
+                }else {
+
+                    key = new String[]{"user_id", "board_id", "title", "content", "create_time"};
+                    value1 = new Object[]{Json.getUser_id() + "", Json.getBoard_id() + "", Json.getTitle(), Json.getContent(), Json.getCreate_time()};
+                }
+                JDBC.add(con, "post", key, value1);
+
+
+
+
+
+
+
+                con.commit();
+
+                res.getWriter().write("OK");
+            }
+
         }catch (Exception e){
 
             e.printStackTrace();
             con.rollback();
         }finally {
-
-
+            if (rs != null) {
+                rs.close();
+            }
+            res.getWriter().close();
             Pool.Pool.returnConn(con);
         }
 
@@ -200,13 +229,122 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
     }
 
     @Override
-    public void DeletePost(HttpServletRequest req, HttpServletResponse res) throws SQLException {
+    public void DeletePost(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException {
+        BufferedReader one = req.getReader();
+        String oneLine = one.readLine();
+        Post Json = JSON.parseObject(oneLine, Post.class);
 
+        HttpSession session = req.getSession();
+        int a  = Integer.parseInt(session.getAttribute("id").toString());
+        Json.setUser_id(a);
+
+        Json.setCreate_time(BaseString.getTime(Json.getCreate_time()));
+
+        Connection con = Pool.Pool.getPool();
+        ResultSet rs = null;
+
+        try{
+
+            String[] main = {"post","board"};
+            String[] mun = {"post.user_id","board.user_id"};
+            String[] key = {"post.user_id","board.user_id"};
+            String[] value = {Json.getUser_id()+"",Json.getUser_id()+""};
+
+
+            //是否有删除权限
+            rs = JDBC.find(con,main,mun,key,value,"");
+
+            if(!rs.next()){
+                res.setStatus(403);
+            }else {
+
+
+                con.setAutoCommit(false);
+
+
+
+                key =new String[] {"user_id", "post_id"};
+                value =new String[] {Json.getUser_id() + "",Json.getPost_id()+""};
+
+                JDBC.delete(con, "post", key, value);
+
+
+                key = new String[]{"post_id"};
+                String[] value1 = {Json.getPost_id() + ""};
+                JDBC.delete(con, "user_like", key, value1);
+
+
+
+                con.commit();
+
+                res.getWriter().write("OK");
+            }
+
+        }catch (Exception e){
+
+            e.printStackTrace();
+            con.rollback();
+        }finally {
+            if (rs != null) {
+                rs.close();
+            }
+            res.getWriter().close();
+            Pool.Pool.returnConn(con);
+        }
     }
 
     @Override
-    public void AddBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException {
+    public void AddBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, ParseException, InterruptedException {
+        BufferedReader one = req.getReader();
+        String oneLine = one.readLine();
+        Board Json = JSON.parseObject(oneLine, Board.class);
 
+        HttpSession session = req.getSession();
+        int a  = Integer.parseInt(session.getAttribute("id").toString());
+        Json.setUser_id(a);
+
+        Json.setCreate_time(BaseString.getTime(Json.getCreate_time()));
+
+        Connection con = Pool.Pool.getPool();
+        ResultSet rs = null;
+
+        try{
+
+            String[] main = {};
+            String[] mun = {};
+            String[] key = {};
+            String[] value = {Json.getUser_id()+""};
+
+
+
+
+
+                con.setAutoCommit(false);
+
+
+
+                key =new String[] {"user_id","title","content","create_time","image"};
+                value =new String[] {Json.getUser_id() + "",Json.getBoard_id()+"",Json.getTitle(),Json.getContent(),Json.getCreate_time(),Json.getImage()};
+
+                JDBC.add(con, "post", key, value);
+
+
+                con.commit();
+
+                res.getWriter().write("OK");
+
+
+        }catch (Exception e){
+
+            e.printStackTrace();
+            con.rollback();
+        }finally {
+            if (rs != null) {
+                rs.close();
+            }
+            res.getWriter().close();
+            Pool.Pool.returnConn(con);
+        }
     }
 
     @Override
@@ -218,6 +356,7 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
     public void AddCommentToPost(HttpServletRequest req, HttpServletResponse res) throws SQLException {
 
     }
+
 
     @Override
     public void DeleteCommentToPost(HttpServletRequest req, HttpServletResponse res) throws SQLException {

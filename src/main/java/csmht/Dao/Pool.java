@@ -71,7 +71,7 @@ public class Pool {
 
         useConn.remove(conn);
         try {
-            if(conn!=null && waitConn.size()<=maxPool){
+            if(conn!=null && waitConn.size() + useConn.size()<=maxPool){
 
                     if(!conn.isClosed()){
                         waitConn.add(conn);
@@ -108,6 +108,16 @@ public class Pool {
         @Override
         public synchronized void run() {
 
+
+//            try {
+//                getUsePool();
+//                getWaitPool();
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e);
+//            }
+
+
+
             try {
                 for (Connection conn : csmht.Dao.connTime.map.keySet()){
                     long time = System.currentTimeMillis() - csmht.Dao.connTime.map.get(conn);
@@ -115,14 +125,33 @@ public class Pool {
                             Pool.returnConn(conn);
                     }
                 }
-//                notifyAll();
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
+    }
 
+    public static TimerTask getUsePool() throws SQLException {
+        System.out.println("user:" + useConn.size());
+        int i =0;
+        for(Connection conn : useConn){
+            if(conn.isClosed()){
+                System.out.println("userNO");
+            }
+        }
+        return null;
+    }
 
+    public static TimerTask getWaitPool() throws SQLException {
+        System.out.println("wait:" + waitConn.size());
+        int i =0;
+        for(Connection conn : waitConn){
+            if(conn.isClosed()){
+                System.out.println("waitNO");
+            }
+        }return null;
     }
 
 }

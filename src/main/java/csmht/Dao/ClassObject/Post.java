@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.annotation.JSONField;
 import csmht.Dao.UserClass;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 
@@ -35,7 +36,7 @@ public class Post extends UserClass {
     private List<Comment> comments = new ArrayList<>();
 
     @JSONField(name="image")
-    private List<String> image = new ArrayList<>();
+    private String image;
 
     public int getPost_id() {
         return post_id;
@@ -105,17 +106,17 @@ public class Post extends UserClass {
         comments.add(comment);
     }
 
-  public List<String> getImage() {
+ public String getImage() {
         return image;
-  }
+ }
 
-  public void setImage(List<String> image) {
+ public void setImage(String image) {
         this.image = image;
-  }
+ }
 
-  public void addImage(String image) {
-        this.image.add(image);
-  }
+ public void addImage(byte[] image) {
+        this.image = Base64.getEncoder().encodeToString(image);
+ }
 
 
 }
