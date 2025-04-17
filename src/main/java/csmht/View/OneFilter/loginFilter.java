@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.Objects;
+
 
 
 @WebFilter(urlPatterns = {"/User/*","/View/*"})
@@ -19,7 +19,7 @@ public class loginFilter implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-        HttpServletResponse response = (HttpServletResponse) servletResponse;
+
 
 
         String[] urls = {".css",".js"};
@@ -38,7 +38,7 @@ public class loginFilter implements Filter {
                     pd = "true";
             }else{pd="pass";}
         } catch (Exception e) {
-            System.out.println(e.toString());
+            e.printStackTrace();
         }
         if(pd.equals("true")){
             filterChain.doFilter(servletRequest, servletResponse);

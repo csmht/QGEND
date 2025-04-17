@@ -2,7 +2,6 @@ package csmht.Model.User;
 
 
 import com.alibaba.fastjson2.JSON;
-import com.mysql.cj.Session;
 import csmht.Dao.BaseString;
 import csmht.Dao.ClassObject.Board;
 import csmht.Dao.ClassObject.Post;
@@ -22,8 +21,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
-import java.util.Base64;
-import java.util.List;
+
 
 
 @WebServlet("/User/Service/*")
@@ -310,10 +308,10 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
 
         try{
 
-            String[] main = {};
-            String[] mun = {};
-            String[] key = {};
-            String[] value = {Json.getUser_id()+""};
+
+
+            String[] key ;
+            String[] value ;
 
 
 
@@ -358,7 +356,7 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
         Json.setUser_id(a);
 
         Connection con = Pool.Pool.getPool();
-        ResultSet rs = null;
+        ResultSet rs ;
 
 
         String[] main = {"board"};
@@ -385,15 +383,6 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
 
 
 
-            main =new String[] {};
-            mun =new String[] {};
-            key =new String[] {};
-             value =new String[] {Json.getUser_id()+""};
-
-
-
-
-
             con.setAutoCommit(false);
             con1.setAutoCommit(false);
 
@@ -401,10 +390,10 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
             key =new String[] {"board_id"};
             String[] key1 = {"post_id"};
             value =new String[] {Json.getBoard_id()+""};
-            String[] value1 = null;
+            String[] value1 ;
 
             JDBC.delete(con,"board_follow", key, value);
-            JDBC.delete(con1,"banned_user", key, value1);
+            JDBC.delete(con1,"banned_user", key, value);
 
             rs = JDBC.find(con1,"SELECT * FROM post WHERE board_id = ?;",value);
 
@@ -413,14 +402,10 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
                 JDBC.delete(con,"comment",key1,value1);
                 JDBC.delete(con,"comment_comment",key1,value1);
                 JDBC.delete(con,"user_like",key1,value1);
-
+                JDBC.delete(con,"user_like", key1, value1);
             }
 
             JDBC.delete(con,"post",key, value);
-
-            JDBC.delete(con,"user_like", key, value);
-
-
 
 
             JDBC.delete(con, "board", key, value);
@@ -466,8 +451,8 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
 
         try{
 
-            String[] key = {};
-            Object[] value = {};
+            String[] key ;
+            Object[] value ;
             if(Json == null||Json.getUser_id() == -1){
                 res.sendError(HttpServletResponse.SC_BAD_REQUEST);
                 return;

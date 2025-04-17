@@ -208,9 +208,9 @@
             deleteModule(moduleId, event) {
                 event.stopPropagation();
                 if (confirm('确定要删除这个模块吗？')) {
-                    axios.post('/deleteModule', { moduleId: moduleId })
+                    axios.post('/User/Service/DeleteBoard', { board_id: moduleId })
                         .then(response => {
-                            if (response.data.success) {
+                            if (response.data == "OK") {
                                 this.approvedModules = this.approvedModules.filter(module => module.board_id!== moduleId);
                                 this.pendingModules = this.pendingModules.filter(module => module.board_id!== moduleId);
                                 this.myModules = this.myModules.filter(module => module.board_id!== moduleId);

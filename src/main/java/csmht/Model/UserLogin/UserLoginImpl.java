@@ -71,7 +71,7 @@ public class UserLoginImpl extends UserBaseServlet implements UserLoginService {
             }
             String[] e = {"password","email","name"};
             String[] f = {Json.getPassword(),Json.getEmail(),Json.getEmail()};
-            int i = JDBC.add(con,"user",e,f);
+            JDBC.add(con,"user",e,f);
             con.commit();
             pd = true;
         }catch(SQLException e) {

@@ -32,7 +32,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         Board Json = JSON.parseObject(oneLine, Board.class);
         Connection con = Pool.Pool.getPool();
 
-        List<Board> board = new ArrayList<Board>();
+        List<Board> board = new ArrayList<>();
         ResultSet rs = null;
         try {
             con.setAutoCommit(false);
@@ -41,10 +41,10 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] hot = {"board.user_id", "user.user_id"};
 
 
-            String[] key = null;
-            String[] value = null;
+            String[] key ;
+            String[] value ;
 
-            key = new String[]{key0};
+
             if (Json == null ||(Json.getBoard_id() == -1&&Json.getUser_id() == -1&&Json.getTitle() != null)) {
                 key = new String[]{};
                 value = new String[]{};
@@ -69,7 +69,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             rs = JDBC.find(con, main, hot, key, value, sort);
 
             while (rs.next()) {
-                Board tow = new Board();
+                Board tow ;
                 tow = csmht.Dao.Find.FindBoard(con, "board_id", rs.getString("board_id"), sort);
                 if(tow.isPass()||key0.equals("user_id")){
                     board.add(tow);
@@ -117,8 +117,8 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] hot = {"board.user_id", "user.user_id"};
 
 
-            String[] key = null;
-            String[] value = null;
+            String[] key ;
+            String[] value ;
 
 
             if (Json == null || Json.getBoard_id() == -1) {
@@ -132,7 +132,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             rs = JDBC.find(con, main, hot, key, value , Hot);
 
             if (rs.next()) {
-                Board tow = new Board();
+                Board tow ;
                 tow = csmht.Dao.Find.FindBoard(con, "board_id", rs.getString("board_id"),Hot);
                 if(!tow.isPass()){
                     resp.sendError(403);
@@ -152,7 +152,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             rs = JDBC.find(con,main,hot,key,value,"ORDER BY post.likes DESC");
             Connection con2 = Pool.Pool.getPool();
             while (rs.next()) {
-                Post tow = new Post();
+                Post tow ;
                 tow = csmht.Dao.Find.FindPost(con2, "post_id", rs.getString("post_id"),Hot);
                 if(BaseString.sdf.parse(tow.getCreate_time()).after(new Date())) {
                     continue;
@@ -206,7 +206,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         Post Json = JSON.parseObject(oneLine, Post.class);
         Connection con = Pool.Pool.getPool();
 
-        List<Post> post = new ArrayList<Post>();
+        List<Post> post = new ArrayList<>();
         ResultSet rs = null;
         try {
             con.setAutoCommit(false);
@@ -215,9 +215,9 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] hot = {"post.user_id", "user.user_id"};
 
 
-            String[] key = null;
-            String[] value = null;
-            key = new String[]{key0};
+            String[] key ;
+            String[] value ;
+
             if (Json == null ||(Json.getPost_id() == -1&&Json.getUser_id() == -1&&Json.getTitle() != null)) {
                 key = new String[]{};
                 value = new String[]{};
@@ -242,7 +242,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             rs = JDBC.find(con, main, hot, key, value, sort);
 
             while (rs.next()) {
-                Post tow = new Post();
+                Post tow ;
                 tow = csmht.Dao.Find.FindPost(con, "post_id", rs.getString("post_id"), sort);
 
                 if(key0.equals("user_id")){
@@ -314,9 +314,9 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] hot = {"post.user_id", "user.user_id"};
 
 
-            String[] key = null;
-            String[] value = null;
-            key = new String[]{};
+            String[] key ;
+            String[] value ;
+
             if (Json == null || Json.getPost_id() == -1) {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
                 return;
@@ -328,7 +328,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             rs = JDBC.find(con, main, hot, key, value,Hot);
 
             if (rs.next()) {
-                Post tow = new Post();
+                Post tow ;
                 tow = csmht.Dao.Find.FindPost(con, "post_id", rs.getString("post_id"),Hot);
                 if(BaseString.sdf.parse(tow.getCreate_time()).after(new Date())) {
                     resp.sendError(403);
@@ -371,7 +371,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         User Json = JSON.parseObject(oneLine, User.class);
         Connection con = Pool.Pool.getPool();
         String sort = Hot;
-        List<User> post = new ArrayList<User>();
+        List<User> post = new ArrayList<>();
         ResultSet rs = null;
         try {
             con.setAutoCommit(false);
@@ -380,8 +380,8 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] hot = {};
 
 
-            String[] key = null;
-            String[] value = null;
+            String[] key ;
+            String[] value ;
 
             key = new String[]{key0};
             if(Json == null || Json.getUserName() == null) {
@@ -402,7 +402,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             rs = JDBC.find(con, main, hot, key, value,sort);
 
             while (rs.next()) {
-                User tow = new User();
+                User tow ;
                 tow = csmht.Dao.Find.FindUser(con, "user_id", rs.getString("user_id"),sort);
                 post.add(tow);
             }
@@ -417,7 +417,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             }
             Pool.Pool.returnConn(con);
         }
-        String json = null;
+        String json ;
         if(sort.isEmpty()){
             json = JSON.toJSONString(post.get(0));
         }else {
@@ -445,9 +445,8 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         String oneLine = one.readLine();
         User Json = JSON.parseObject(oneLine, User.class);
         Connection con = Pool.Pool.getPool();
-        String sort = Hot;
-        User user = new User();
-        ResultSet rs = null;
+        User user ;
+        ResultSet rs ;
 
         if(Json == null || (Json.getUser_id() == -1)) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
@@ -464,7 +463,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         rs = JDBC.find(con,main,hot,key,value,"");
         Connection con2 = Pool.Pool.getPool();
 
-        List<Integer> postID = new LinkedList<Integer>();
+        List<Integer> postID = new LinkedList<>();
         List<Integer> boardID = new LinkedList<>();
         List<Integer> viewID = new LinkedList<>();
         List<Integer> userID = new LinkedList<>();
@@ -484,7 +483,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
               user.addLikePost(post);
             }
             if(board_id!=null&& !boardID.contains(rs.getInt("board_id"))){
-              FollowBoard board = new FollowBoard(csmht.Dao.Find.FindBoard(con2,"board_id",board_id,""), rs.getString("board_follow.follow_time"));  ;
+              FollowBoard board = new FollowBoard(csmht.Dao.Find.FindBoard(con2,"board_id",board_id,""), rs.getString("board_follow.follow_time"));
               boardID.add(rs.getInt("board_id"));
               user.addFollowBoard(board);
             }
@@ -528,9 +527,8 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] hot = {};
 
 
-            String[] key = null;
-            String[] value = null;
-            key = new String[]{};
+            String[] key ;
+            String[] value ;
             if(Json == null || Json.getComment_Id() == -1) {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
                 return;
@@ -544,9 +542,9 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
 
             rs = JDBC.find(con, main, hot, key, value,Hot);
 
-            while (rs.next()) {
-
-            }
+//            while (rs.next()) {
+//
+//            }
 
             con.commit();
         } catch (Exception e) {
@@ -590,7 +588,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             rs = JDBC.find(con,main,hot,key,value,"ORDER BY likes view_time DESC");
 
             while (rs.next()) {
-                Post tow = new Post();
+                Post tow ;
                 tow = csmht.Dao.Find.FindPost(con, "post_id", rs.getString("post_id"),Hot);
                 post.add(tow);
             }

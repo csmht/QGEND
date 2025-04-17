@@ -1,6 +1,5 @@
 package csmht.Dao;
 
-import javax.servlet.http.HttpServletResponse;
 
 public class Constant {
     public static final String New = "ORDER BY create_time DESC";
