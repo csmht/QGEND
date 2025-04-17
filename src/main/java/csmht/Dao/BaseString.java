@@ -33,12 +33,12 @@ public class BaseString {
             Date currentDate = new Date();
 
             if (targetDate.after(currentDate)) {
-                ans = targetDate.toString();
+                ans = sdf.format(targetDate);
             } else {
-                ans = currentDate.toString();
+                ans  = sdf.format(currentDate);
             }
         }else {
-            ans = new Date().toString();
+            ans = sdf.format(new Date());
         }
 
         return ans;

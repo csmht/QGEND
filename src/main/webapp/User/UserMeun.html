@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <title>用户菜单</title>
-
     <link rel="stylesheet" href="../User/UserMeun.css">
     <script src="../axios.min.js"></script>
     <script src="../vue.js"></script>
@@ -28,19 +27,22 @@
     <main>
         <!-- 用户信息卡片 -->
         <div class="user-info" v-if="currentPage === 'profile'">
-            <img :src="user.image" alt="用户头像">
+            <div class="img-box">
+                <img :src="user.image" alt="用户头像">
+            </div>
+
             <h2>{{ user.UserName }}</h2>
             <p>ID：{{ user.user_id }}</p>
-            <p>用户类型：{{ (user.admin)?'管理员':'普通用户' }}</p>
-            <p>粉丝数：{{user.user_likes}}</p>
-            <p>创建时间:{{user.create_time}}</p>
+            <p>用户类型：{{ (user.admin)? '管理员' : '普通用户' }}</p>
+            <p>粉丝数：{{ user.user_likes }}</p>
+            <p>创建时间:{{ user.create_time }}</p>
             <button @click="openEditModal">修改</button>
         </div>
         <!-- 关注的用户 -->
         <div class="follow-section" v-if="currentPage === 'followedUsers'">
             <h3>关注的用户</h3>
             <ul>
-                <li v-for="user in followedUsers" >{{user.follow_user.UserName}}</li>
+                <li v-for="user in followedUsers">{{ user.follow_user.UserName }}</li>
             </ul>
         </div>
         <!-- 关注的板块 -->
@@ -48,36 +50,52 @@
             <h3>关注的板块</h3>
             <div v-for="section in followedSections" :key="section" @click="InBoard(section.follow_board.board_id)">
                 <h4>{{ section.follow_board.title }}</h4>
-                <h5>{{ section.follow_board.content | truncate}}</h5>
+                <h5>{{ section.follow_board.content | truncate }}</h5>
             </div>
         </div>
         <!-- 我的帖子 -->
-        <div v-if="currentPage === 'myPosts'" >
-            <h3>我的帖子</h3>
-            <!-- 这里可以添加显示帖子的具体内容 -->
-            <div v-for="post in myPosts" :key="post.post_id" @click="InPost(post.post_id)">
+        <div v-if="currentPage === 'myPosts'">
+            <h3>已发布的帖子</h3>
+            <div v-for="post in publishedPosts" :key="post.post_id" @click="InPost(post.post_id)">
                 <h4>{{ post.title }}</h4>
                 <p>{{ post.content | truncate }}</p>
+                <p>发布状态: 已发布</p>
+                <button @click="deletePost(post.post_id, $event)">删除</button>
+            </div>
+            <h3>未发布的帖子</h3>
+            <div v-for="post in unpublishedPosts" :key="post.post_id">
+                <h4>{{ post.title }}</h4>
+                <p>{{ post.content | truncate }}</p>
+                <p>发布状态: 未发布</p>
                 <button @click="deletePost(post.post_id, $event)">删除</button>
             </div>
         </div>
         <!-- 我的模块 -->
-        <div v-if="currentPage === 'myModules'" >
+        <div v-if="currentPage === 'myModules'">
             <h3>我的模块</h3>
             <!-- 添加申请模块按钮 -->
-            <button @click="applyModule">申请模块</button>
-            <!-- 这里可以添加显示模块的具体内容 -->
-            <div v-for="module in myModules" :key="module.board_id" @click="InBoard(module.board_id)">
+            <button @click="applyModule" :disabled="hasPendingModule">申请模块</button>
+            <!-- 已通过审核的模块 -->
+            <h3>已通过审核的模块</h3>
+            <div v-for="module in approvedModules" :key="module.board_id" @click="InBoard(module.board_id)">
                 <h4>{{ module.title }}</h4>
                 <p>{{ module.content | truncate }}</p>
+                <button @click="deleteModule(module.board_id, $event)">删除</button>
+            </div>
+            <!-- 正在审核的模块 -->
+            <h3>正在审核的模块</h3>
+            <div v-for="module in pendingModules" :key="module.board_id">
+                <h4>{{ module.title }}</h4>
+                <p>{{ module.content | truncate }}</p>
+                <p>审核状态: 正在审核</p>
                 <button @click="deleteModule(module.board_id, $event)">删除</button>
             </div>
         </div>
         <!-- 用户看过的帖子 -->
         <div v-if="currentPage === 'postHistory'">
-            <div class="post" v-for="post in posts" :key="post.historyPost.post_id" @click="InPost(post.historyPost.post_id)" >
+            <div class="post" v-for="post in posts" :key="post.historyPost.post_id" @click="InPost(post.historyPost.post_id)">
                 <h3>{{ post.historyPost.title }}</h3>
-                <p>{{ post.historyPost.content | truncate}}</p>
+                <p>{{ post.historyPost.content | truncate }}</p>
                 <div v-if="post.historyPost.image">
                     <img v-for="image in post.historyPost.image" :src="image" alt="帖子图片">
                 </div>
@@ -117,17 +135,23 @@
                 Email: '',
                 image: '',
             },
-            image: null
+            image: null,
+            publishedPosts: [], // 新增，存储已发布的帖子
+            unpublishedPosts: [], // 新增，存储未发布的帖子
+            approvedModules: [], // 新增，存储已通过审核的模块
+            pendingModules: [], // 新增，存储正在审核的模块
+            hasPendingModule: false // 新增，标志是否有正在审核的模块
         },
         methods: {
             CloseImage(event) {
                 const file = event.target.files[0];
-
                 if (file!= null) {
                     const a = file;
+                    const _this = this;
                     const reader = new FileReader();
                     reader.onload = function (e) {
-                        _this.editUser.image = e.target.result; // 将Base64数据存到变量b
+                        _this.editUser.image = e.target.result;
+
                     };
                     reader.readAsDataURL(a);
                 }
@@ -158,7 +182,6 @@
                     Email: this.editUser.Email,
                     image: this.editUser.image,
                 })
-
                 this.user = {...this.editUser};
                 this.editModalVisible = false;
             },
@@ -168,6 +191,8 @@
                     axios.post('/User/Service/DeletePost', { post_id: postId })
                         .then(response => {
                             if (response.data == "OK") {
+                                this.publishedPosts = this.publishedPosts.filter(post => post.post_id!== postId);
+                                this.unpublishedPosts = this.unpublishedPosts.filter(post => post.post_id!== postId);
                                 this.myPosts = this.myPosts.filter(post => post.post_id!== postId);
                                 alert('帖子删除成功');
                             } else {
@@ -186,7 +211,11 @@
                     axios.post('/deleteModule', { moduleId: moduleId })
                         .then(response => {
                             if (response.data.success) {
+                                this.approvedModules = this.approvedModules.filter(module => module.board_id!== moduleId);
+                                this.pendingModules = this.pendingModules.filter(module => module.board_id!== moduleId);
                                 this.myModules = this.myModules.filter(module => module.board_id!== moduleId);
+                                // 删除正在审核的模块后，更新标志位
+                                this.hasPendingModule = this.pendingModules.length > 0;
                                 alert('模块删除成功');
                             } else {
                                 alert('模块删除失败');
@@ -198,10 +227,8 @@
                         });
                 }
             },
-            // 新增申请模块方法
             applyModule() {
                 window.location.assign("../View/addBoard.html")
-                alert('你点击了申请模块按钮，后续可添加具体逻辑');
             }
         },
         filters: {
@@ -215,9 +242,7 @@
         beforeMount() {
             const urlParams = new URLSearchParams(window.location.search);
             this.user.user_id = urlParams.get('user_id');
-
-            _this = this;
-
+            let _this = this;
             axios.post("/User/Find/MyUser", {
                 user_id: _this.user.user_id,
             }).then((response) => {
@@ -228,19 +253,37 @@
                 _this.editUser.UserName = _this.user.UserName;
                 _this.editUser.Email = _this.user.Email;
                 _this.user.image = `data:image/jpeg;base64,${_this.user.image}`;
-
             })
-
             axios.post("/User/Find/UserManyBoardHot", {
                 user_id: _this.user.user_id,
             }).then((response) => {
                 _this.myModules = response.data;
+                _this.approvedModules = [];
+                _this.pendingModules = [];
+                _this.hasPendingModule = false;
+                _this.myModules.forEach(module => {
+                    if (module.pass) {
+                        _this.approvedModules.push(module);
+                    } else {
+                        _this.pendingModules.push(module);
+                        _this.hasPendingModule = true;
+                    }
+                });
             })
-
             axios.post("/User/Find/UserManyPostHot", {
                 user_id: _this.user.user_id,
             }).then((response) => {
                 _this.myPosts = response.data;
+                const now = new Date();
+                _this.myPosts.forEach(post => {
+                    const createTime = new Date(post.create_time.replace('T', ' '));
+                    post.isPublished = createTime <= now;
+                    if (post.isPublished) {
+                        _this.publishedPosts.push(post);
+                    } else {
+                        _this.unpublishedPosts.push(post);
+                    }
+                });
             })
         }
     });

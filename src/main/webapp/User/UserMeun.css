@@ -55,11 +55,21 @@ main {
     margin-bottom: 20px;
 }
 
-.user-info img {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    margin-right: 10px;
+.img-box {
+     width: 80px;
+     height: 80px;
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     border-radius: 5px;
+     overflow: hidden;
+     cursor: pointer;
+}
+
+.img-box img {
+     width: 100%;
+     height: 100%;
+     object-fit: cover;
 }
 
 /* 关注的用户和板块样式 */

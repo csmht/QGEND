@@ -118,7 +118,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void DeleteBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void DeleteBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException;
 
     /**
      * 评论帖子

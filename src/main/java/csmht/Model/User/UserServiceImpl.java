@@ -324,9 +324,9 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
 
 
                 key =new String[] {"user_id","title","content","create_time","image"};
-                value =new String[] {Json.getUser_id() + "",Json.getBoard_id()+"",Json.getTitle(),Json.getContent(),Json.getCreate_time(),Json.getImage()};
+                value =new String[] {Json.getUser_id() + "",Json.getTitle(),Json.getContent(),Json.getCreate_time(),Json.getImage()};
 
-                JDBC.add(con, "post", key, value);
+                JDBC.add(con, "board", key, value);
 
 
                 con.commit();
@@ -348,7 +348,100 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
     }
 
     @Override
-    public void DeleteBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException {
+    public void DeleteBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException {
+        BufferedReader one = req.getReader();
+        String oneLine = one.readLine();
+        Board Json = JSON.parseObject(oneLine, Board.class);
+
+        HttpSession session = req.getSession();
+        int a  = Integer.parseInt(session.getAttribute("id").toString());
+        Json.setUser_id(a);
+
+        Connection con = Pool.Pool.getPool();
+        ResultSet rs = null;
+
+
+        String[] main = {"board"};
+        String[] mun = {};
+        String[] key = {"board.user_id"};
+        String[] value = {Json.getUser_id()+""};
+
+        //是否有删除权限
+        rs = JDBC.find(con,main,mun,key,value,"");
+
+        if(!rs.next()){
+            rs = JDBC.find(con,"SELECT * FROM user WHERE user_id = ?;",value);
+            if(!rs.next()||!rs.getBoolean("admin")){
+                res.setStatus(403);
+                Pool.Pool.returnConn(con);
+                rs.close();
+                res.getWriter().close();
+                return;
+            }
+        }
+
+        Connection con1 = Pool.Pool.getPool();
+        try{
+
+
+
+            main =new String[] {};
+            mun =new String[] {};
+            key =new String[] {};
+             value =new String[] {Json.getUser_id()+""};
+
+
+
+
+
+            con.setAutoCommit(false);
+            con1.setAutoCommit(false);
+
+
+            key =new String[] {"board_id"};
+            String[] key1 = {"post_id"};
+            value =new String[] {Json.getBoard_id()+""};
+            String[] value1 = null;
+
+            JDBC.delete(con,"board_follow", key, value);
+            JDBC.delete(con1,"banned_user", key, value1);
+
+            rs = JDBC.find(con1,"SELECT * FROM post WHERE board_id = ?;",value);
+
+            while (rs.next()) {
+                value1 = new String[] {rs.getString("post_id")};
+                JDBC.delete(con,"comment",key1,value1);
+                JDBC.delete(con,"comment_comment",key1,value1);
+                JDBC.delete(con,"user_like",key1,value1);
+
+            }
+
+            JDBC.delete(con,"post",key, value);
+
+            JDBC.delete(con,"user_like", key, value);
+
+
+
+
+            JDBC.delete(con, "board", key, value);
+            con.commit();
+            con1.commit();
+            res.getWriter().write("OK");
+
+
+        }catch (Exception e){
+
+            e.printStackTrace();
+            con1.rollback();
+            con.rollback();
+        }finally {
+            if (rs != null) {
+                rs.close();
+            }
+            res.getWriter().close();
+            Pool.Pool.returnConn(con);
+            Pool.Pool.returnConn(con1);
+        }
 
     }
 

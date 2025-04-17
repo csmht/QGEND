@@ -52,7 +52,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
                 key = new String[]{"board.title"};
                 value = new String[]{"'%" + Json.getTitle() + "'%"};
 
-            } else if (key0.equals("user_id")) {
+            } else if (key0.equals("user_id")||key0.equals("user_id0")) {
                 value = new String[]{String.valueOf(Json.getUser_id())};
                 key = new String[]{"user.user_id"};
 
@@ -71,7 +71,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             while (rs.next()) {
                 Board tow = new Board();
                 tow = csmht.Dao.Find.FindBoard(con, "board_id", rs.getString("board_id"), sort);
-                if(tow.isPass()){
+                if(tow.isPass()||key0.equals("user_id")){
                     board.add(tow);
                 }
             }
@@ -122,7 +122,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
 
 
             if (Json == null || Json.getBoard_id() == -1) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                resp.sendError(403);
                 return;
             }  else {
                 key = new String[]{"board_id"};
@@ -225,7 +225,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
                 value = new String[]{"%" + Json.getTitle() + "%"};
                 key = new String[]{"board_id"};
 
-            } else if (key0.equals("user_id")) {
+            } else if (key0.equals("user_id")||key0.equals("user_id0")) {
                 value = new String[]{String.valueOf(Json.getUser_id())};
                 key = new String[]{"user.user_id"};
 
@@ -244,10 +244,13 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             while (rs.next()) {
                 Post tow = new Post();
                 tow = csmht.Dao.Find.FindPost(con, "post_id", rs.getString("post_id"), sort);
-                if(BaseString.sdf.parse(tow.getCreate_time()).after(new Date())) {
-                    continue;
+
+                if(key0.equals("user_id")){
+                    post.add(tow);
+                }else if(!BaseString.sdf.parse(tow.getCreate_time()).after(new Date())) {
+                    post.add(tow);
                 }
-                post.add(tow);
+
             }
 
             con.commit();

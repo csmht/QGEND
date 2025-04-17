@@ -13,6 +13,9 @@
 <body>
 <div id="post-app">
     <div class="post-container">
+
+        <h2>模块：{{this.boardName}}</h2>
+
         <h1 class="post-title">{{ posts.title }}</h1>
         <p class="post-content">{{ posts.content }}</p>
         <img class="post-image" :src="posts.image" alt="帖子图片">
@@ -57,6 +60,7 @@
     new Vue({
         el: '#post-app',
         data: {
+            boardName:'',
             posts: [],
             post: {},
             comments: [],
@@ -131,7 +135,17 @@
                 _this.posts = response.data;
                 _this.posts.image = 'data:image/jpeg;base64,' + _this.posts.image;
 
+                axios.post("/User/Find/OneBoard",{
+                    board_id: _this.posts.board_id,
+                }).then((response) => {
+                    _this.boardName = response.data.title;
+
+
+                })
+
             })
+
+
 
             axios.post("/User/Service/isLike",{
                 "post_id": this.post_id

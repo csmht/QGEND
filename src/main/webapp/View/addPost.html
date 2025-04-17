@@ -29,7 +29,7 @@
         <div class="form-group">
             <label for="publishTime">帖子发布时间</label>
             <h6>选择今天之前的默认为立刻发布</h6>
-            <input type="datetime-local" id="publishTime" v-model="post.create_time">
+            <input type="datetime-local" id="publishTime" @change="getTime" v-model="create_time">
         </div>
         <!-- 图片上传 -->
         <div class="form-group">
@@ -43,6 +43,7 @@
     new Vue({
         el: '#app',
         data: {
+            create_time: '',
             board_title: '',
             board_id: '',
             image: "",
@@ -68,6 +69,14 @@
                 }
             },
 
+            getTime() {
+                const value = this.create_time;
+                const now = new Date();
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                this.post.create_time = value.replace('T', ' ') + `:${seconds}`;
+
+            },
+
             submitPost() {
 
                 const _this = this;
@@ -85,7 +94,6 @@
                         alert("你已被该模块封禁");
                     }else if(res.data == "OK"){
                         alert("发表成功");
-                        location.assign(`../View/Board.html?Board_id=${_this.board_id}`);
                     }else {
                         alert("发布失败");
                     }
