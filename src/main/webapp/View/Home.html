@@ -23,7 +23,8 @@
         <div class="posts-section">
             <div class="toggle-buttons">
                 <button :class="{ active: isLatestPosts }" @click="showLatestPosts">最新帖子</button>
-                <button :class="{ active:!isLatestPosts }" @click="showPopularPosts">热门帖子</button>
+                <button :class="{ active:!isLatestPosts &&!isInterestedPosts }" @click="showPopularPosts">热门帖子</button>
+                <button :class="{ active: isInterestedPosts }" @click="showInterestedPosts">可能感兴趣的帖子</button>
             </div>
             <div class="post" v-for="post in filteredPosts" :key="post.post_id" @click="InPost(post.post_id)">
                 <h3>{{ post.title }}</h3>
@@ -33,7 +34,7 @@
                 <h5>发表时间：{{post.create_time}}</h5>
             </div>
         </div>
-        <div  class="boards-section">
+        <div class="boards-section">
             <h2>热门板块</h2>
             <div class="board" v-for="i in filteredBoards" :key="i.board_id" @click="InBoard(i.board_id)">
                 <h2>{{ i.title }}</h2>
@@ -47,12 +48,14 @@
     new Vue({
         el: '#app',
         data: {
-            NewPost:[],
-            HotPost:[],
+            NewPost: [],
+            HotPost: [],
             board: [],
+            InterestedPost: [],
             isLatestPosts: true,
+            isInterestedPosts: false,
             currentPosts: [],
-            find:'',
+            find: '',
             filteredPosts: [],
             filteredBoards: []
         },
@@ -63,13 +66,21 @@
         methods: {
             showLatestPosts() {
                 this.isLatestPosts = true;
+                this.isInterestedPosts = false;
                 this.currentPosts = this.NewPost;
                 this.filteredPosts = this.NewPost;
             },
             showPopularPosts() {
                 this.isLatestPosts = false;
+                this.isInterestedPosts = false;
                 this.currentPosts = this.HotPost;
                 this.filteredPosts = this.HotPost;
+            },
+            showInterestedPosts() {
+                this.isLatestPosts = false;
+                this.isInterestedPosts = true;
+                this.currentPosts = this.InterestedPost;
+                this.filteredPosts = this.InterestedPost;
             },
             search() {
                 window.location.assign(`../View/Seek.html?find=${this.find}`);
@@ -84,7 +95,7 @@
         },
         beforeMount() {
             const _this = this;
-            axios.post("/User/Find/UserManyBoardHot",).then(res => {
+            axios.post("/User/Find/NameManyBoardHot").then(res => {
                 const one = res.data;
                 for (let i = 0; i < one.length; i++) {
                     _this.board.push(one[i]);
@@ -92,17 +103,24 @@
                 _this.filteredBoards = _this.board;
             })
 
-            axios.post("/User/Find/UserManyPostHot").then(res => {
+            axios.post("/User/Find/TitleManyPostHot").then(res => {
                 const one = res.data;
                 for (let i = 0; i < one.length; i++) {
                     _this.HotPost.push(one[i]);
                 }
             })
 
-            axios.post("/User/Find/UserManyPostNew").then(res => {
+            axios.post("/User/Find/TitleManyPostNew").then(res => {
                 const one = res.data;
                 for (let i = 0; i < one.length; i++) {
                     _this.NewPost.push(one[i]);
+                }
+            })
+
+            axios.post("/User/Find/InterestPost").then(res => {
+                const one = res.data;
+                for (let i = 0; i < one.length; i++) {
+                    _this.InterestedPost.push(one[i]);
                 }
             })
 
@@ -110,8 +128,8 @@
         filters: {
             truncate(value) {
                 if (typeof value === 'string') {
-                return value.length > 20? value.slice(0, 20) + "..." : value;
-            }
+                    return value.length > 20? value.slice(0, 20) + "..." : value;
+                }
                 return '';
             }
         }

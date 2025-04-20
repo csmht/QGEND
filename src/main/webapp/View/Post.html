@@ -24,26 +24,25 @@
             <span>发布时间: {{ posts.create_time }}</span>
         </div>
         <div class="actions">
-            <!-- 根据 isLiked 状态显示不同的按钮文本和绑定不同的方法 -->
             <button @click="isLiked ? cancelLikePost(posts.post_id) : likePost(posts.post_id)">
                 {{ isLiked ? '取消点赞 (' + posts.likes + ')' : '点赞 (' + posts.likes + ')' }}
             </button>
         </div>
         <div class="comments">
             <h2>评论 ()</h2>
-            <div class="comment" v-for="comment in posts.PostComment" :key="comment.comment_id">
+            <div class="comment" v-for="comment in comments" :key="comment.comment_id">
                 <div class="comment-author">{{ comment.UserName }}</div>
                 <div class="comment-text">{{ comment.content }}
                     <h6>{{comment.create_time}}</h6>
                 </div>
-                <button @click="showReplyInput(comment)">回复</button>
-                <div class="reply-section" v-if="comment.showReplyInput">
+
+                <div>
                     <textarea v-model="comment.replyText" placeholder="请输入回复内容"></textarea>
                     <button @click="submitReply(comment)">提交回复</button>
                 </div>
                 <div class="reply" v-for="reply in comment.comment_comment" :key="reply.comment_id">
                     <div class="reply-author">
-                        <h5>{{ reply.UserName }}</h5>
+                        <h5>用户：{{ reply.UserName }}</h5>
                     </div>
                     <div class="reply-text"><h5>{{ reply.content }}</h5></div>
                 </div>
@@ -98,52 +97,88 @@
                 this.post.collects++;
             },
             submitComment() {
+                let _this = this;
                 if (this.newCommentText.trim() !== '') {
-                    const newComment = {
-                        id: this.comments.length + 1,
-                        author: '当前用户',
-                        text: this.newCommentText,
-                        showReplyInput: false,
-                        replyText: '',
-                        replies: []
-                    };
-                    this.comments.push(newComment);
-                    this.newCommentText = '';
+
+                    axios.post("/User/Service/addCommentToPost",{
+                        content: this.newCommentText,
+                        post_id: this.post_id,
+                    }).then(res => {
+                        _this.refresh();
+                    })
                 }
             },
             showReplyInput(comment) {
+
                 comment.showReplyInput = !comment.showReplyInput;
+
+                alert(comment.showReplyInput);
             },
             submitReply(comment) {
                 if (comment.replyText.trim() !== '') {
-                    const newReply = {
-                        id: Date.now(),
-                        author: '当前用户',
-                        text: comment.replyText
-                    };
-                    comment.replies.push(newReply);
-                    comment.replyText = '';
+                    axios.post("/User/Service/addCommentToComment", {
+                        post_id: comment.post_id,
+                        comment_id: comment.comment_id,
+                        content: comment.replyText,
+                    }).then(res => {
+                        _this.refresh();
+                    })
+
                     comment.showReplyInput = false;
+
                 }
+            },
+            refresh(){
+                let _this = this;
+
+                axios.post("/User/Find/OnePost", { "post_id": this.post_id }).then((response) => {
+                    _this.posts = response.data;
+                    _this.posts.image = 'data:image/jpeg;base64,' + _this.posts.image;
+                    _this.comments = _this.posts.PostComment;
+
+                    for(let i=0; i<_this.comments.length; i++) {
+                        comments[i].showReplyInput = false;
+                    }
+
+                    axios.post("/User/Find/OneBoard",{
+                        board_id: _this.posts.board_id,
+                    }).then((response) => {
+                        _this.boardName = response.data.title;
+
+
+                    })
+                })
+                for(let i=0; i<_this.comments.length; i++) {
+                   comments[i].showReplyInput = false;
+                }
+
             }
         },
         beforeMount() {
             const urlParams = new URLSearchParams(window.location.search);
             this.post_id = urlParams.get('post_id');
             let _this = this;
-            axios.post("/User/Find/OnePost", { "post_id": this.post_id }).then((response) => {
-                _this.posts = response.data;
-                _this.posts.image = 'data:image/jpeg;base64,' + _this.posts.image;
-
-                axios.post("/User/Find/OneBoard",{
-                    board_id: _this.posts.board_id,
-                }).then((response) => {
-                    _this.boardName = response.data.title;
 
 
-                })
 
-            })
+                 axios.post("/User/Find/OnePost", { "post_id": this.post_id }).then((response) => {
+                    _this.posts = response.data;
+                    _this.posts.image = 'data:image/jpeg;base64,' + _this.posts.image;
+                    _this.comments = _this.posts.PostComment;
+
+                     for(let i=0; i<_this.comments.length; i++) {
+                         comments[i].showReplyInput = false;
+                     }
+
+                    axios.post("/User/Find/OneBoard",{
+                        board_id: _this.posts.board_id,
+                    }).then((response) => {
+                        _this.boardName = response.data.title;
+
+
+                    })
+                 })
+
 
 
 
@@ -156,6 +191,9 @@
                     _this.isLiked = false;
                 }
             })
+
+
+
 
         }
     });

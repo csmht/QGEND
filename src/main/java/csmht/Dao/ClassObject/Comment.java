@@ -14,7 +14,7 @@ public class Comment extends UserClass {
     private int likes;
 
     @JSONField(name="post_id")
-    private int post_Id;
+    private int post_Id = -1;
 
     @JSONField(name="content")
     private String content;

@@ -126,6 +126,24 @@ public class Pool {
                     }
                 }
 
+                while(waitConn.size()+useConn.size()>=maxPool){
+                    Connection conn = waitConn.removeFirst();
+                    conn.close();
+                }
+
+                for(Connection conn : waitConn){
+                    if(conn.isClosed()){
+                        waitConn.remove(conn);
+                    }
+                }
+
+                for(Connection conn : useConn){
+                    if(conn.isClosed()){
+                        useConn.remove(conn);
+                    }
+                }
+
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -134,10 +152,12 @@ public class Pool {
     }
 
     public static TimerTask getUsePool() throws SQLException {
+        System.out.println("----------------------");
         System.out.println("user:" + useConn.size());
         int i =0;
         for(Connection conn : useConn){
             if(conn.isClosed()){
+
                 System.out.println("userNO");
             }
         }

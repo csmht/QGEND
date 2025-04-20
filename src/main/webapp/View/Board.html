@@ -15,7 +15,7 @@
 <div id="module-app">
     <div class="module-container">
         <div class="module-info">
-            <img :src="board.image">
+            <img :src="image" alt="贴吧头像">
             <h1>{{ board.title }}</h1>
             <h2>创建者: {{ board.UserName }}</h2>
             <p>简介：{{board.content}}</p>
@@ -23,24 +23,57 @@
         </div>
         <!-- 添加发帖按钮 -->
         <div class="module-actions">
-            <button @click="followModule">关注 ({{ module.followers }})</button>
-            <button @click="reportModule">举报</button>
+            <button @click="toggleFollow">{{ isFollowing ? '取消关注' : '关注' }} ({{ board.likes }})</button>
+            <button @click="showModuleReportInput">举报</button>
             <button @click="createPost">发帖</button>
             <!-- 添加切换按钮 -->
-            <button @click="togglePostSort">{{ sortMode === 'latest' ? '显示最热帖子' : '显示最新帖子' }}</button>
+            <button @click="togglePostSort">{{ sortMode === 'latest'? '显示最热帖子' : '显示最新帖子' }}</button>
+            <!-- 添加查看被举报帖子按钮和编辑模块信息按钮 -->
+            <button v-if="isAdmin" @click="openEditModal">编辑模块信息</button>
+            <button v-if="isAdmin" @click="viewReportedPosts">查看被举报的帖子</button>
+        </div>
+        <!-- 新增模块举报内容输入框区域，默认隐藏 -->
+        <div v-if="showModuleReportInputFlag" class="report-input">
+            <textarea v-model="moduleReportContent" placeholder="请输入举报模块的内容"></textarea>
+            <button @click="submitModuleReport">提交举报</button>
+            <button @click="hideModuleReportInput">取消</button>
         </div>
         <div class="posts-list">
-            <h2>模块内帖子 ()</h2>
-            <div class="post" v-for="post in sortedPosts" :key="post.id" >
+            <h2>模块内帖子 ({{ sortedPosts.length }})</h2>
+            <div class="post" v-for="post in sortedPosts" :key="post.id">
                 <h3 @click="InPost(post.post_id)">{{ post.title }}</h3>
                 <p @click="InPost(post.post_id)">发帖人: {{ post.user_id }}</p>
                 <p @click="InPost(post.post_id)">喜欢人数: {{ post.likes }}</p>
-
                 <p @click="InPost(post.post_id)" class="post-content-preview">{{ post.content | truncate}}...</p>
                 <h5 @click="InPost(post.post_id)">发帖时间：{{post.create_time}}</h5>
                 <!-- 添加举报帖子按钮 -->
-                <button @click="reportPost(post.id)">举报该帖子</button>
+                <button @click="showReportInput(post.post_id)">举报该帖子</button>
+                <!-- 新增举报内容输入框区域，默认隐藏 -->
+                <div v-if="showReportInputFor[post.post_id]" class="report-input">
+                    <textarea v-model="reportContents[post.post_id]" placeholder="请输入举报内容"></textarea>
+                    <button @click="submitReport(post.post_id)">提交举报</button>
+                    <button @click="hideReportInput(post.post_id)">取消</button>
+                </div>
+                <!-- 添加删除帖子按钮 -->
+                <button v-if="isAdmin" @click="deletePost(post.post_id)">删除</button>
             </div>
+        </div>
+    </div>
+    <!-- 编辑模块信息弹窗 -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" @click="closeEditModal">&times;</span>
+            <h2>编辑模块信息</h2>
+            <form @submit.prevent="saveModuleInfo">
+                <label for="title">模块标题:</label>
+                <input type="text" id="title" v-model="editTitle" required><br>
+                <label for="content">模块简介:</label>
+                <textarea id="content" v-model="editContent" required></textarea><br>
+                <label for="image">模块头像:</label>
+                <input type="file" id="image" @change="handleImageUpload"><br>
+                <img v-if="previewImage" :src="previewImage" alt="Preview" style="max-width: 200px; margin-top: 10px;"><br>
+                <button type="submit">保存</button>
+            </form>
         </div>
     </div>
 </div>
@@ -48,6 +81,7 @@
     new Vue({
         el: '#module-app',
         data: {
+            image: "",
             module: {
                 board_id: '0',
                 title: '0',
@@ -58,7 +92,19 @@
                 post: []
             },
             board: {},
-            sortMode: 'latest' // 初始显示最新帖子
+            sortMode: 'latest', // 初始显示最新帖子
+            isFollowing: false, // 新增变量，判断用户是否关注模块
+            isAdmin: false, // 新增变量，判断用户是否为模块管理员
+            board_id: null,
+            editModalVisible: false, // 控制弹窗显示隐藏
+            editTitle: '',
+            editContent: '',
+            editImage: '',
+            previewImage: '',
+            showReportInputFor: {}, // 用于控制每个帖子举报输入框的显示状态
+            reportContents: {}, // 用于存储每个帖子对应的举报内容
+            showModuleReportInputFlag: false, // 控制模块举报输入框的显示状态
+            moduleReportContent: '' // 存储模块举报内容
         },
         computed: {
             sortedPosts() {
@@ -73,42 +119,193 @@
             InPost(post_id) {
                 window.open(`../View/Post.html?post_id=${post_id}`, "_blank");
             },
-            followModule() {
-                this.module.followers++;
+            toggleFollow() {
+                if (this.isFollowing) {
+                    // 取消关注
+                    axios.post("/User/Service/UnFollowBoard", {
+                        board_id: this.board_id,
+                    })
+                        .then(res => {
+                            if (res.data === "OK") {
+                                this.board.likes--;
+                                this.isFollowing =!this.isFollowing;
+                            }
+                        })
+                } else {
+                    // 关注
+                    axios.post("/User/Service/FollowBoard", {
+                        board_id: this.board_id,
+                    })
+                        .then(res => {
+                            if (res.data === "OK") {
+                                this.board.likes++;
+                                this.isFollowing =!this.isFollowing;
+                            }
+                        })
+                }
             },
-            reportModule() {
-                alert('你已举报该模块，我们会尽快处理。');
+            showModuleReportInput() {
+                this.showModuleReportInputFlag = true;
+            },
+            hideModuleReportInput() {
+                this.showModuleReportInputFlag = false;
+                this.moduleReportContent = '';
+            },
+            submitModuleReport() {
+                if (this.moduleReportContent.trim()!== '') {
+                    axios.post("/User/Service/BrowseBoard", {
+                        board_id: this.board_id,
+                        content: this.moduleReportContent
+                    }).then(res => {
+                        if (res.data === "OK") {
+                            alert('模块举报已提交，我们会尽快处理。');
+                            this.hideModuleReportInput();
+                        } else {
+                            alert('模块举报提交失败，请重试。');
+                        }
+                    });
+                } else {
+                    alert('请输入模块举报内容');
+                }
             },
             // 发帖方法
             createPost() {
                 location.assign(`../View/addPost.html?board_id=${this.board.board_id}&title=${this.board.title}`);
             },
             // 举报帖子方法
-            reportPost(postId) {
-                alert(`你已举报帖子 ID 为 ${postId} 的帖子，我们会尽快处理。`);
+            showReportInput(postId) {
+                this.$set(this.showReportInputFor, postId, true);
+            },
+            hideReportInput(postId) {
+                this.$set(this.showReportInputFor, postId, false);
+                this.reportContents[postId] = '';
+            },
+            submitReport(postId) {
+                if (this.reportContents[postId].trim()!== '') {
+                    axios.post("/User/Service/ReportPost", {
+                        post_id: postId,
+                        content: this.reportContents[postId]
+                    }).then(res => {
+                        if (res.data === "OK") {
+                            alert('举报已提交，我们会尽快处理。');
+                            this.hideReportInput(postId);
+                        } else {
+                            alert('举报提交失败，请重试。');
+                        }
+                    });
+                } else {
+                    alert('请输入举报内容');
+                }
             },
             // 切换显示模式
             togglePostSort() {
-                this.sortMode = this.sortMode === 'latest' ? 'hot' : 'latest';
+                this.sortMode = this.sortMode === 'latest'? 'hot' : 'latest';
+            },
+            // 查看被举报帖子方法
+            viewReportedPosts() {
+                // 这里可以添加查看被举报帖子的逻辑
+                alert('查看被举报帖子功能待实现');
+            },
+            // 打开编辑模块信息弹窗
+            openEditModal() {
+                this.editTitle = this.board.title;
+                this.editContent = this.board.content;
+                this.editImage = this.board.image.split(',')[1]; // 提取 Base64 数据
+                this.previewImage = this.board.image;
+                this.editModalVisible = true;
+            },
+            // 关闭编辑模块信息弹窗
+            closeEditModal() {
+                this.editModalVisible = false;
+                this.previewImage = '';
+                this.editImage = '';
+            },
+            // 处理图片上传
+            handleImageUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.previewImage = e.target.result;
+                        this.editImage = e.target.result.split(',')[1];
+                    };
+                    reader.readAsDataURL(file);
+                }
+            },
+            // 保存模块信息
+            saveModuleInfo() {
+                axios.post("/User/Service/UpdateBoard", {
+                    board_id: this.board_id,
+                    title: this.editTitle,
+                    content: this.editContent,
+                    image: this.editImage
+                })
+                    .then(res => {
+                        if (res.data === "OK") {
+                            this.board.title = this.editTitle;
+                            this.board.content = this.editContent;
+                            this.board.image = `data:image/jpeg;base64,${this.editImage}`;
+                            this.closeEditModal();
+                            alert('模块信息更新成功');
+                        } else {
+                            alert('模块信息更新失败');
+                        }
+                    })
+            },
+            // 删除帖子方法
+            deletePost(postId) {
+                if (confirm('确定要删除该帖子吗？')) {
+                    axios.post("/User/Service/DeletePost", {
+                        post_id: postId
+                    })
+                        .then(res => {
+                            if (res.data === "OK") {
+                                this.board.post = this.board.post.filter(post => post.id!== postId);
+                                alert('帖子删除成功');
+                            } else {
+                                alert('帖子删除失败');
+                            }
+                        });
+                }
             }
         },
         beforeMount() {
+            let _this = this;
             const urlParams = new URLSearchParams(window.location.search);
             this.board_id = urlParams.get('board_id');
-            var _this = this;
-            axios.post("/User/Find/OneBoard", { "board_id": this.board_id }).then((response) => {
-                _this.board = response.data;
-                _this.board.image = `data:image/jpeg;base64,${_this.board.image}`;
-            })
+            axios.post("/User/Find/OneBoard", { "board_id": this.board_id })
+                .then((response) => {
+                    this.board = response.data;
+                    _this.image = `data:image/jpeg;base64,${this.board.image}`;
+                });
 
+            axios.post("/User/Service/isFollowBoard", { "board_id": this.board_id })
+                .then((response) => {
+                    this.isFollowing = response.data;
+                });
 
+            // 判断用户是否为模块管理员
+            axios.post("/User/Service/isBoardAdmin", { "board_id": this.board_id })
+                .then((response) => {
+                    this.isAdmin = response.data;
+                });
         },
         filters: {
             truncate(value) {
-                if (typeof value === 'string') {
-                    return value.length > 20 ? value.slice(0, 20) + "..." : value;
+                if (typeof value ==='string') {
+                    return value.length > 20? value.slice(0, 20) + "..." : value;
                 }
                 return '';
+            }
+        },
+        watch: {
+            editModalVisible(newValue) {
+                const modal = document.getElementById('edit-modal');
+                if (newValue) {
+                    modal.style.display = 'block';
+                } else {
+                    modal.style.display = 'none';
+                }
             }
         }
     });

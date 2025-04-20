@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
+import static csmht.Dao.Constant.Hot;
 import static csmht.Dao.Constant.New;
 
 
@@ -195,16 +196,35 @@ public class Find {
             sort = "";
         }
 
-        String[] main={"comment","user"};
-        String[] sub={"comment.user_id","user.user_id"};
-        String[] key={key0};
-        String[] value={value0};
 
-        rs = JDBC.find(con,main,sub,key,value,sort);
 
-        if(rs.next()){
+        if(key0.equals("comment1_id")){
+           String sql = "select * from comment_comment cc left join comment c on cc.comment2_id = c.comment_id left join user u on c.user_id = u.user_id where cc.comment1_id=?";
+            String[] value={value0};
+
+
+           rs = JDBC.find(con,sql,value);
+
+        }else {
+            String[] main={"comment","user"};
+            String[] sub={"comment.user_id","user.user_id"};
+            String[] key={key0};
+            String[] value={value0};
+
+
+            rs = JDBC.find(con,main,sub,key,value,sort);
+        }
+
+
+
+        while (rs.next()){
+
+            if(rs.getInt("comment1_id")>0&&!key0.equals("comment1_id")){
+                continue;
+            }
+
             Comment one = new Comment();
-            one.setUserName(rs.getString("user.name"));
+            one.setUserName(rs.getString("name"));
             one.setUser_id(rs.getInt("user_id"));
             one.setPost_Id(rs.getInt("post_id"));
             one.setContent(rs.getString("content"));
@@ -212,6 +232,13 @@ public class Find {
             one.setCreate_time(rs.getString("create_time"));
             one.setLikes(rs.getInt("likes"));
             one.setComment1_id(rs.getInt("comment1_id"));
+
+            if(!key0.equals("comment1_id")){
+                Connection con2 = Pool.Pool.getPool();
+                one.setCommComment(FindComment(con,"comment1_id",String.valueOf(one.getComment_Id()),Hot));
+                Pool.Pool.returnConn(con2);
+            }
+
             comment.add(one);
         }
         rs.close();

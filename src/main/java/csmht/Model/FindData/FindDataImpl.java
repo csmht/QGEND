@@ -10,6 +10,8 @@ import csmht.View.UserBaseServlet;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpSessionAttributeListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -45,12 +47,12 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] value ;
 
 
-            if (Json == null ||(Json.getBoard_id() == -1&&Json.getUser_id() == -1&&Json.getTitle() != null)) {
+            if (Json == null ||(Json.getBoard_id() == -1&&Json.getUser_id() == -1&&Json.getTitle() == null)) {
                 key = new String[]{};
                 value = new String[]{};
             } else if (key0.equals("title")) {
                 key = new String[]{"board.title"};
-                value = new String[]{"'%" + Json.getTitle() + "'%"};
+                value = new String[]{"%" + Json.getTitle() + "%"};
 
             } else if (key0.equals("user_id")||key0.equals("user_id0")) {
                 value = new String[]{String.valueOf(Json.getUser_id())};
@@ -218,12 +220,12 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] key ;
             String[] value ;
 
-            if (Json == null ||(Json.getPost_id() == -1&&Json.getUser_id() == -1&&Json.getTitle() != null)) {
+            if (Json == null ||(Json.getPost_id() == -1&&Json.getUser_id() == -1&&Json.getTitle() == null)) {
                 key = new String[]{};
                 value = new String[]{};
             } else if (key0.equals("title")) {
                 value = new String[]{"%" + Json.getTitle() + "%"};
-                key = new String[]{"board_id"};
+                key = new String[]{"post.title"};
 
             } else if (key0.equals("user_id")||key0.equals("user_id0")) {
                 value = new String[]{String.valueOf(Json.getUser_id())};
@@ -336,16 +338,17 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
                 }
                 post = tow;
             }else {
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                resp.sendError(403);
                 return;
             }
 
-
+            //获取评论
             post.setComments(csmht.Dao.Find.FindComment(con,"post_id",String.valueOf(post.getPost_id()),Hot));
 
-            for(Comment c : post.getComments()) {
-               c.setCommComment(csmht.Dao.Find.FindComment(con,"comment1_id",String.valueOf(c.getComment_Id()),Hot));
-            }
+            //获取回复
+//            for(Comment c : post.getComments()) {
+//               c.setCommComment(csmht.Dao.Find.FindComment(con,"comment1_id",String.valueOf(c.getComment_Id()),Hot));
+//            }
 
             con.commit();
         } catch (Exception e) {
@@ -483,12 +486,12 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
               user.addLikePost(post);
             }
             if(board_id!=null&& !boardID.contains(rs.getInt("board_id"))){
-              FollowBoard board = new FollowBoard(csmht.Dao.Find.FindBoard(con2,"board_id",board_id,""), rs.getString("board_follow.follow_time"));
+              FollowBoard board = new FollowBoard(csmht.Dao.Find.FindBoard(con2,"board_id",board_id,""), rs.getString("board_follow.create_time"));
               boardID.add(rs.getInt("board_id"));
               user.addFollowBoard(board);
             }
             if(user_id!=null&& !userID.contains(rs.getInt("follower_id"))){
-               FollowUser user1 = new FollowUser(csmht.Dao.Find.FindUser(con2,"user_id",user_id,""),rs.getString("user_follow.follow_time")) ;
+               FollowUser user1 = new FollowUser(csmht.Dao.Find.FindUser(con2,"user_id",user_id,""),rs.getString("user_follow.create_time")) ;
                userID.add(rs.getInt("follower_id"));
                user.addFollowUser(user1);
             }
@@ -506,6 +509,65 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         Pool.Pool.returnConn(con);
         Pool.Pool.returnConn(con2);
         String json = JSON.toJSONString(user);
+        PrintWriter writer = resp.getWriter();
+        writer.write(json);
+        writer.close();
+    }
+
+    @Override
+    public void InterestPost(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+        BufferedReader one = req.getReader();
+        String oneLine = one.readLine();
+        Post Json = JSON.parseObject(oneLine, Post.class);
+        Connection con = Pool.Pool.getPool();
+        Connection con2 = Pool.Pool.getPool();
+        HttpSession session = req.getSession();
+        int a  = Integer.parseInt(session.getAttribute("id").toString());
+
+        List<Post> post = new ArrayList<>();
+        ResultSet rs = null;
+        try {
+            con.setAutoCommit(false);
+
+            String[] main = {};
+            String[] hot = {};
+
+
+            String[] key ={};
+            String[] value ={a+"",a+""};
+
+            String sql = "WITH followed_entities AS (    SELECT follower_id AS entity_id    FROM user_follow     WHERE user_id = ?    UNION ALL    SELECT board_id AS entity_id     FROM board_follow     WHERE user_id = ?)   SELECT     p.post_id,      CASE         WHEN fe.entity_id IS NOT NULL THEN 1        ELSE 0    END AS is_followed   FROM     post p   LEFT JOIN     followed_entities fe   ON     p.user_id = fe.entity_id OR p.board_id = fe.entity_id   ORDER BY     is_followed DESC,    p.create_time DESC;";
+
+           rs = JDBC.find(con,sql,value);
+
+           List<Integer> postID = new LinkedList<>();
+
+            while (rs.next()) {
+                if(!postID.contains(rs.getInt("post_id"))){
+                    postID.add(rs.getInt("post_id"));
+                    Post tow;
+                    tow = csmht.Dao.Find.FindPost(con2,"post_id",rs.getString("post_id"),"");
+                    if(!BaseString.sdf.parse(tow.getCreate_time()).after(new Date())) {
+                        post.add(tow);
+                    }
+                }
+
+            }
+
+
+            con.commit();
+        } catch (Exception e) {
+            con.rollback();
+            e.printStackTrace();
+        } finally {
+            Pool.Pool.returnConn(con);
+            Pool.Pool.returnConn(con2);
+            if (rs != null) {
+                rs.close();
+            }
+        }
+
+        String json = JSON.toJSONString(post);
         PrintWriter writer = resp.getWriter();
         writer.write(json);
         writer.close();

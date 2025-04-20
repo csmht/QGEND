@@ -174,4 +174,7 @@ public interface FindDataService {
      * @throws InterruptedException
      */
     public void MyUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
+
+
+    public void InterestPost(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException;
 }

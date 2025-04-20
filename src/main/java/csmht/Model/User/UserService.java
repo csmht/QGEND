@@ -8,13 +8,14 @@ import java.text.ParseException;
 
 public interface UserService {
     /**
-     * 用户举报模块
-     * 模块id  用户id
+     * 用户举报帖子
+     * 帖子id  用户id
      * @param req
      * @param res
      * @throws SQLException
      */
-    public void BrowsePost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void BrowsePost(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, ParseException, InterruptedException;
+
 
     /**
      * 关注模块
@@ -23,7 +24,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void FollowBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void FollowBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, ParseException, InterruptedException;
 
     /**
      * 取关模块
@@ -32,7 +33,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UnFollowBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void UnFollowBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, ParseException, InterruptedException;
 
 
     /**
@@ -64,7 +65,7 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void FollowUser(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void FollowUser(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException;
 
     /**
      * 取关用户
@@ -73,16 +74,26 @@ public interface UserService {
      * @param res
      * @throws SQLException
      */
-    public void UnFollowUser(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void UnFollowUser(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException;
 
     /**
-     * 举报帖子
-     * user_id post_id
+     * 举报模块
+     * user_id board_id
      * @param req
      * @param res
      * @throws SQLException
      */
-    public void BrowseBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void BrowseBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, ParseException, InterruptedException;
+
+    /**
+     * 举报用户
+     * user_id a
+     * @param req
+     * @param res
+     * @throws SQLException
+     */
+    public void BrowseUser(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, ParseException, InterruptedException;
+
 
     /**
      * 发帖
@@ -122,12 +133,22 @@ public interface UserService {
 
     /**
      * 评论帖子
-     * user_id comment_id
+     * user_id post_id
      * @param req
      * @param res
      * @throws SQLException
      */
-    public void AddCommentToPost(HttpServletRequest req, HttpServletResponse res) throws SQLException;
+    public void addCommentToPost(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException;
+
+
+    /**
+     * 评论评论
+     * user_id post_id comment_id
+     * @param req
+     * @param res
+     * @throws SQLException
+     */
+    public void addCommentToComment(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException;
 
     /**
      * 删除帖子评论
@@ -147,6 +168,60 @@ public interface UserService {
      */
     public void ChangeUser(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException;
 
+    /**
+     * 判断是否关注用户
+     * user_id user_id
+     * @param req
+     * @param res
+     * @throws SQLException
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public void isFollowUser(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException;
 
+    /**
+     * 判断是否关注贴吧
+     * user_id board_id
+     * @param req
+     * @param res
+     * @throws SQLException
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public void isFollowBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException;
+
+    /**
+     * 是否为贴吧管理员
+     * @param req
+     * @param res
+     * @throws SQLException
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ParseException
+     */
+    public void isBoardAdmin(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException;
+
+    /**
+     * 修改模块信息
+     * @param req
+     * @param res
+     * @throws SQLException
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ParseException
+     */
+    public void UpdateBoard(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException;
+
+    /**
+     * 被举报的帖子
+     * board_id
+     * @param req
+     * @param res
+     * @throws SQLException
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ParseException
+     */
+    public void FindBrowsePost(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException;
 
 }
