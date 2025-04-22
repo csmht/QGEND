@@ -24,13 +24,20 @@
             <span>发布时间: {{ posts.create_time }}</span>
         </div>
         <!-- 添加关注/取关按钮 -->
-        <button @click="isFollowing? cancelFollow(posts.UserId) : followUser(posts.UserId)">
+        <button @click="isFollowing? cancelFollow(posts.user_id) : followUser(posts.user_id)">
             {{ isFollowing? '取关' : '关注' }}
         </button>
         <div class="actions">
             <button @click="isLiked? cancelLikePost(posts.post_id) : likePost(posts.post_id)">
                 {{ isLiked? '取消点赞 (' + posts.likes + ')' : '点赞 (' + posts.likes + ')' }}
             </button>
+            <!-- 添加AI解释按钮 -->
+            <button @click="getAIExplanation">AI解释帖子内容</button>
+        </div>
+        <!-- 显示AI解释内容的区域 -->
+        <div v-if="aiExplanation" class="ai-explanation">
+            <h2>AI解释内容</h2>
+            <p>{{ aiExplanation }}</p>
         </div>
         <div class="comments">
             <h2>评论 ()</h2>
@@ -69,7 +76,8 @@
             comments: [],
             newCommentText: '',
             isLiked: false, // 新增状态，用于追踪是否已点赞
-            isFollowing: false // 新增状态，用于追踪是否已关注用户
+            isFollowing: false, // 新增状态，用于追踪是否已关注用户
+            aiExplanation: '' // 新增变量，用于存储AI解释内容
         },
         methods: {
             likePost(post_id) {
@@ -158,7 +166,7 @@
             followUser(userId) {
                 let _this = this;
                 axios.post("/User/Service/FollowUser", {
-                    userId: userId
+                    user_id: userId
                 }).then(res => {
                     if (res.data === "OK") {
                         _this.isFollowing = true;
@@ -170,13 +178,22 @@
             cancelFollow(userId) {
                 let _this = this;
                 axios.post("/User/Service/UnFollowUser", {
-                    userId: userId
+                    user_id: userId
                 }).then(res => {
                     if (res.data === "OK") {
                         _this.isFollowing = false;
                     } else {
                         alert("取关失败");
                     }
+                })
+            },
+            // 新增方法，用于获取AI解释内容
+            getAIExplanation() {
+                let _this = this;
+                axios.post("/AI", {
+                    content: this.posts.content,
+                }).then(res => {
+                    _this.aiExplanation = res.data.content;
                 })
             }
         },

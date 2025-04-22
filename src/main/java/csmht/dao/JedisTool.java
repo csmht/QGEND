@@ -34,7 +34,12 @@ public class JedisTool {
     public static int FindCommentLike(String comment_id) throws ParseException {
         Jedis jedis = RedisPool.getJedis();
         int ans;
-        ans = Integer.parseInt(jedis.get("commentLike"+comment_id));
+        if(jedis.get("commentLike"+comment_id)==null){
+            ans = 0;
+        }else {
+            ans = Integer.parseInt(jedis.get("commentLike"+comment_id));
+        }
+
 
         jedis.close();
         return ans;
@@ -59,11 +64,7 @@ public class JedisTool {
     public static Map<String, String> FindViewPost(String user_id){
         String userFollow = "user" + user_id + "view";
         Jedis jedis = RedisPool.getJedis();
-        Set<String> posts =jedis.hkeys(userFollow);
-        Map<String,String> map =new HashMap<String,String>();
-        for (String s:posts){
-            map.put(s,jedis.hget(userFollow,s));
-        }
+        Map<String,String> map =jedis.hgetAll(userFollow);
         jedis.close();
         return map;
     }
@@ -140,11 +141,8 @@ public class JedisTool {
         String userFollow = "user" + user_id + "follow";
 
         Jedis jedis = RedisPool.getJedis();
-        Set<String> boards =jedis.smembers(userFollow);
-        Map<String,String> map =new HashMap<String,String>();
-        for (String s:boards){
-            map.put(s,jedis.hget(userFollow,s));
-        }
+        Map<String,String> map =jedis.hgetAll(userFollow);
+
         jedis.close();
         return map;
 
@@ -154,12 +152,12 @@ public class JedisTool {
     public static Map<String, String> FindLikeUser(String user_id){
         String userLike = "user" + user_id + "like";
 
+        return getStringStringMap(userLike);
+    }
+
+    private static Map<String, String> getStringStringMap(String userLike) {
         Jedis jedis = RedisPool.getJedis();
-        Set<String> boards =jedis.keys(userLike);
-        Map<String,String> map =new HashMap<String,String>();
-        for (String s:boards){
-            map.put(s,jedis.hget(userLike,s));
-        }
+        Map<String,String> map =jedis.hgetAll(userLike);
         jedis.close();
         return map;
     }
@@ -197,29 +195,34 @@ public class JedisTool {
 
     public static Map<String,String> FindFollowUser(String user_id){
         String userFollow = "userFollow" + user_id + "follow";
-        Jedis jedis = RedisPool.getJedis();
-        Set<String> boards =jedis.keys(userFollow);
-
-        Map<String,String> map =new HashMap<String,String>();
-        for (String s:boards){
-            map.put(s,jedis.hget(userFollow,s));
-        }
-        jedis.close();
-        return map;
+        return getStringStringMap(userFollow);
     }
 
     public static int FindLikesPost(String user_id){
         Jedis jedis = RedisPool.getJedis();
         String userLike = "post" + user_id + "Like";
-        int ans = Integer.parseInt(jedis.get(userLike));
+        int ans;
+        if(jedis.get(userLike)==null){
+            ans = 0;
+        }  else {
+            ans = Integer.parseInt(jedis.get(userLike));
+        }
+
         jedis.close();
         return ans;
     }
 
     public static int FindLikesBoard(String boardId) {
         Jedis jedis = RedisPool.getJedis();
-        String userLike = "board" + boardId + "Like";
-        int ans = Integer.parseInt(jedis.get(userLike));
+        String userLike = "boardFollow" + boardId;
+        int ans;
+        if(jedis.get(userLike) == null) {
+            ans = 0;
+        }else {
+            ans = Integer.parseInt(jedis.get(userLike));
+        }
+
+
         jedis.close();
         return ans;
     }
@@ -227,7 +230,15 @@ public class JedisTool {
     public static int FindPostView(String s) {
         Jedis jedis = RedisPool.getJedis();
         String userLike = "postView" + s ;
-        int ans = Integer.parseInt(jedis.get(userLike));
+
+        int ans;
+        if(jedis.get(userLike) == null) {
+            ans = 0;
+        }else {
+            ans = Integer.parseInt(jedis.get(userLike));
+        }
+
+
         jedis.close();
         return ans;
     }

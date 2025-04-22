@@ -12,9 +12,9 @@ public class RedisPool {
         static {
             JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
 
-            jedisPoolConfig.setMaxTotal(5);
-            jedisPoolConfig.setMaxIdle(5);
-            jedisPoolConfig.setMinIdle(1);
+            jedisPoolConfig.setMaxTotal(10);
+            jedisPoolConfig.setMaxIdle(10);
+            jedisPoolConfig.setMinIdle(3);
             jedisPoolConfig.setMaxWait(Duration.ofSeconds(3));
             jedisPool = new JedisPool(jedisPoolConfig,"10.44.252.185",6379,1000);
         }

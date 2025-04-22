@@ -119,8 +119,8 @@ public class Find {
             board.setContent(rs.getString("content"));
             board.setUser_id(rs.getInt("user_id"));
             board.setPass(rs.getInt("pass"));
-
-            board.setLikes(csmht.dao.JedisTool.FindLikesBoard(rs.getInt("board_id")+""));
+            int like = csmht.dao.JedisTool.FindLikesBoard(rs.getInt("board_id")+"");
+            board.setLikes(like);
 
             InputStream inputStream = rs.getBinaryStream("image");
             if (inputStream != null) {

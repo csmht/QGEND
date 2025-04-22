@@ -352,25 +352,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             HttpSession session = req.getSession();
             int a  = Integer.parseInt(session.getAttribute("id").toString());
 
-            main = new String[]{"view_history"};
-            hot = new String[]{};
-            key = new String[]{"post_id","user_id"};
-            value = new String[]{post.getPost_id() + "",a + ""};
-
-            rs = JDBC.find(con, main, hot, key, value,"");
-            String time = BaseString.getTime("1000-01-01 00:00:00");
-
-            if(rs.next()) {
-                main = new String[]{"view_time"};
-                hot = new String[]{time};
-                JDBC.update(con,"view_history",main,hot,key,value);
-            }else {
-
-                key = new String[]{"post_id","user_id","view_time"};
-                value = new String[]{post.getPost_id() + "",a+"",time};
-
-                JDBC.add(con,"view_history",key,value);
-            }
+           csmht.dao.JedisTool.ViewPost("" + a,"" + post.getPost_id());
 
 
             con.commit();
@@ -500,14 +482,17 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             LikePost post =  new LikePost(csmht.dao.Find.FindPost(con2,"post_id",post_id,""),LikePost.get(post_id));
             user.addLikePost(post);
         }
+
         for (String board_id : FollowBoard.keySet()) {
             FollowBoard board = new FollowBoard(csmht.dao.Find.FindBoard(con2,"board_id",board_id,""),FollowBoard.get(board_id));
             user.addFollowBoard(board);
         }
+
         for (String user_id : FollowUser.keySet()) {
             FollowUser user1 = new FollowUser(csmht.dao.Find.FindUser(con2,"user_id",user_id,""),FollowUser.get(user_id)) ;
             user.addFollowUser(user1);
         }
+
         for (String view:View.keySet()) {
             HistoryPost post = new HistoryPost(csmht.dao.Find.FindPost(con2,"post_id",view,""),View.get(view));
             user.addHistoryPost(post);

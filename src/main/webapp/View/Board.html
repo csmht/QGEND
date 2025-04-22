@@ -179,6 +179,7 @@
                             }
                         })
                 }
+
             },
             showModuleReportInput() {
                 this.showModuleReportInputFlag = true;
@@ -361,6 +362,16 @@
                             }
                         })
                 }
+                let _this = this;
+                const urlParams = new URLSearchParams(window.location.search);
+                this.board_id = urlParams.get('board_id');
+                axios.post('/User/Find/OneBoard', { "board_id": this.board_id })
+                    .then((response) => {
+                        _this.board = response.data;
+                        _this.image = `data:image/jpeg;base64,${_this.board.image}`;
+                        // 获取模块创建者的用户ID
+                        this.creatorUserId = this.board.user_id;
+                    });
             },
             // 显示封禁输入框和选择框
             showBanInput(userId) {

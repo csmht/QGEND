@@ -200,8 +200,8 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
         }
 
 
-        res.setStatus(200);
-
+        res.getWriter().write("OK");
+        res.getWriter().close();
     }
 
 
