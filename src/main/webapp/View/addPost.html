@@ -90,7 +90,7 @@
 
                 }).then(res =>{
 
-                    if(res.data.status==403){
+                    if(res.data.status=="ban"){
                         alert("你已被该模块封禁");
                     }else if(res.data == "OK"){
                         alert("发表成功");

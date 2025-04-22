@@ -18,14 +18,18 @@
 
         <h1 class="post-title">{{ posts.title }}</h1>
         <p class="post-content">{{ posts.content }}</p>
-        <img class="post-image" :src="posts.image" alt="帖子图片">
+        <img class="post-image" v-if="posts.image" :src="posts.image" alt="帖子图片">
         <div class="publisher-info">
             <span>发布者: {{ posts.UserName }}</span>
             <span>发布时间: {{ posts.create_time }}</span>
         </div>
+        <!-- 添加关注/取关按钮 -->
+        <button @click="isFollowing? cancelFollow(posts.UserId) : followUser(posts.UserId)">
+            {{ isFollowing? '取关' : '关注' }}
+        </button>
         <div class="actions">
-            <button @click="isLiked ? cancelLikePost(posts.post_id) : likePost(posts.post_id)">
-                {{ isLiked ? '取消点赞 (' + posts.likes + ')' : '点赞 (' + posts.likes + ')' }}
+            <button @click="isLiked? cancelLikePost(posts.post_id) : likePost(posts.post_id)">
+                {{ isLiked? '取消点赞 (' + posts.likes + ')' : '点赞 (' + posts.likes + ')' }}
             </button>
         </div>
         <div class="comments">
@@ -35,8 +39,8 @@
                 <div class="comment-text">{{ comment.content }}
                     <h6>{{comment.create_time}}</h6>
                 </div>
-
-                <div>
+                <button @click="showReplyInput(comment)">回复</button>
+                <div v-if="comment.showReplyInput">
                     <textarea v-model="comment.replyText" placeholder="请输入回复内容"></textarea>
                     <button @click="submitReply(comment)">提交回复</button>
                 </div>
@@ -59,12 +63,13 @@
     new Vue({
         el: '#post-app',
         data: {
-            boardName:'',
+            boardName: '',
             posts: [],
             post: {},
             comments: [],
             newCommentText: '',
-            isLiked: false // 新增状态，用于追踪是否已点赞
+            isLiked: false, // 新增状态，用于追踪是否已点赞
+            isFollowing: false // 新增状态，用于追踪是否已关注用户
         },
         methods: {
             likePost(post_id) {
@@ -98,9 +103,9 @@
             },
             submitComment() {
                 let _this = this;
-                if (this.newCommentText.trim() !== '') {
+                if (this.newCommentText.trim()!== '') {
 
-                    axios.post("/User/Service/addCommentToPost",{
+                    axios.post("/User/Service/addCommentToPost", {
                         content: this.newCommentText,
                         post_id: this.post_id,
                     }).then(res => {
@@ -109,26 +114,23 @@
                 }
             },
             showReplyInput(comment) {
-
-                comment.showReplyInput = !comment.showReplyInput;
-
-                alert(comment.showReplyInput);
+                this.$set(comment,'showReplyInput',!comment.showReplyInput);
             },
             submitReply(comment) {
-                if (comment.replyText.trim() !== '') {
+                if (comment.replyText.trim()!== '') {
                     axios.post("/User/Service/addCommentToComment", {
                         post_id: comment.post_id,
                         comment_id: comment.comment_id,
                         content: comment.replyText,
                     }).then(res => {
-                        _this.refresh();
+                        this.refresh();
                     })
 
                     comment.showReplyInput = false;
 
                 }
             },
-            refresh(){
+            refresh() {
                 let _this = this;
 
                 axios.post("/User/Find/OnePost", { "post_id": this.post_id }).then((response) => {
@@ -136,11 +138,11 @@
                     _this.posts.image = 'data:image/jpeg;base64,' + _this.posts.image;
                     _this.comments = _this.posts.PostComment;
 
-                    for(let i=0; i<_this.comments.length; i++) {
-                        comments[i].showReplyInput = false;
+                    for (let i = 0; i < _this.comments.length; i++) {
+                        _this.comments[i].showReplyInput = false;
                     }
 
-                    axios.post("/User/Find/OneBoard",{
+                    axios.post("/User/Find/OneBoard", {
                         board_id: _this.posts.board_id,
                     }).then((response) => {
                         _this.boardName = response.data.title;
@@ -148,10 +150,34 @@
 
                     })
                 })
-                for(let i=0; i<_this.comments.length; i++) {
-                   comments[i].showReplyInput = false;
+                for (let i = 0; i < _this.comments.length; i++) {
+                    _this.comments[i].showReplyInput = false;
                 }
 
+            },
+            followUser(userId) {
+                let _this = this;
+                axios.post("/User/Service/FollowUser", {
+                    userId: userId
+                }).then(res => {
+                    if (res.data === "OK") {
+                        _this.isFollowing = true;
+                    } else {
+                        alert("关注失败");
+                    }
+                })
+            },
+            cancelFollow(userId) {
+                let _this = this;
+                axios.post("/User/Service/UnFollowUser", {
+                    userId: userId
+                }).then(res => {
+                    if (res.data === "OK") {
+                        _this.isFollowing = false;
+                    } else {
+                        alert("取关失败");
+                    }
+                })
             }
         },
         beforeMount() {
@@ -159,40 +185,40 @@
             this.post_id = urlParams.get('post_id');
             let _this = this;
 
+            axios.post("/User/Find/OnePost", { "post_id": this.post_id }).then((response) => {
+                _this.posts = response.data;
+                _this.posts.image = 'data:image/jpeg;base64,' + _this.posts.image;
+                _this.comments = _this.posts.PostComment;
+
+                for (let i = 0; i < _this.comments.length; i++) {
+                    _this.comments[i].showReplyInput = false;
+                }
+
+                axios.post("/User/Find/OneBoard", {
+                    board_id: _this.posts.board_id,
+                }).then((response) => {
+                    _this.boardName = response.data.title;
 
 
-                 axios.post("/User/Find/OnePost", { "post_id": this.post_id }).then((response) => {
-                    _this.posts = response.data;
-                    _this.posts.image = 'data:image/jpeg;base64,' + _this.posts.image;
-                    _this.comments = _this.posts.PostComment;
+                })
+            })
 
-                     for(let i=0; i<_this.comments.length; i++) {
-                         comments[i].showReplyInput = false;
-                     }
-
-                    axios.post("/User/Find/OneBoard",{
-                        board_id: _this.posts.board_id,
-                    }).then((response) => {
-                        _this.boardName = response.data.title;
-
-
-                    })
-                 })
-
-
-
-
-            axios.post("/User/Service/isLike",{
+            axios.post("/User/Service/isLike", {
                 "post_id": this.post_id
             }).then((response) => {
-                if(response.data == "like"){
+                if (response.data == "like") {
                     _this.isLiked = true;
-                }else {
+                } else {
                     _this.isLiked = false;
                 }
             })
 
+            // 检查是否已关注用户
 
+            axios.post("/User/Service/isFollowUser", { "user_id": this.posts.user_id })
+                .then((response) => {
+                    this.isFollowing = response.data;
+                });
 
 
         }

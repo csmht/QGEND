@@ -15,6 +15,8 @@
         <h1>用户主页</h1>
     </header>
     <aside>
+        <!-- 新增管理员菜单按钮 -->
+        <button v-if="user.admin" @click="toAdmin()">管理员菜单</button>
         <button @click="openHome()">查看热门帖子</button>
         <button @click="showPage('profile')">个人信息中心</button>
         <button @click="showPage('followedUsers')">关注的用户</button>
@@ -93,12 +95,10 @@
         </div>
         <!-- 用户看过的帖子 -->
         <div v-if="currentPage === 'postHistory'">
-            <div class="post" v-for="post in posts" :key="post.historyPost.post_id" @click="InPost(post.historyPost.post_id)">
+            <div class="post" v-for="post in posts"  @click="InPost(post.historyPost.post_id)">
                 <h3>{{ post.historyPost.title }}</h3>
                 <p>{{ post.historyPost.content | truncate }}</p>
-                <div v-if="post.historyPost.image">
-                    <img v-for="image in post.historyPost.image" :src="image" alt="帖子图片">
-                </div>
+
                 <p>点赞数：{{ post.historyPost.likes }}</p>
             </div>
         </div>
@@ -143,6 +143,9 @@
             hasPendingModule: false // 新增，标志是否有正在审核的模块
         },
         methods: {
+            toAdmin(){
+                window.open(`../admin/admin.html`);
+            },
             CloseImage(event) {
                 const file = event.target.files[0];
                 if (file!= null) {
@@ -229,6 +232,10 @@
             },
             applyModule() {
                 window.location.assign("../View/addBoard.html")
+            },
+            // 新增打开管理员菜单方法
+            openAdminMenu() {
+                window.location.assign("../Admin/AdminManage.html");
             }
         },
         filters: {

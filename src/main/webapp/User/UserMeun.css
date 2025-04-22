@@ -36,7 +36,7 @@ aside button:hover {
     background-color: #b3b3b6;
 }
 
-button:active{
+button:active {
     background-color: #67676c;
 }
 
@@ -56,20 +56,20 @@ main {
 }
 
 .img-box {
-     width: 80px;
-     height: 80px;
-     display: flex;
-     justify-content: center;
-     align-items: center;
-     border-radius: 5px;
-     overflow: hidden;
-     cursor: pointer;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    overflow: hidden;
+    cursor: pointer;
 }
 
 .img-box img {
-     width: 100%;
-     height: 100%;
-     object-fit: cover;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 /* 关注的用户和板块样式 */
@@ -91,7 +91,11 @@ main {
 }
 
 .follow-section ul li {
-    margin-bottom: 5px;
+    margin-bottom: 10px; /* 关注的用户间隔 */
+}
+
+.follow-section div {
+    margin-bottom: 10px; /* 关注的板块间隔 */
 }
 
 /* 用户发布的帖子样式 */
@@ -108,7 +112,17 @@ main {
     height: auto;
 }
 
-.controls{
+.controls {
     top: 10px;
     right: 10px;
+}
+
+/* 我的帖子样式 */
+#app main div.v-if-myPosts > div {
+    margin-bottom: 20px; /* 我的帖子间隔 */
+}
+
+/* 我的模块样式 */
+#app main div.v-if-myModules > div {
+    margin-bottom: 20px; /* 我的模块间隔 */
 }
