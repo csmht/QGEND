@@ -26,6 +26,14 @@ public class UserLoginImpl extends UserBaseServlet implements UserLoginService {
         BufferedReader one = req.getReader();
         String oneLine = one.readLine();
         User Json = JSON.parseObject(oneLine, User.class);
+
+
+        if(!csmht.Model.Captcha.isCaptcha(req,res,Json.getCaptcha())){
+            res.getWriter().write("Captcha");
+            res.getWriter().close();
+            return;
+        }
+
         Connection con = Pool.Pool.getPool();
         String[] a = {"user"};
         String[] b = {};
@@ -54,6 +62,14 @@ public class UserLoginImpl extends UserBaseServlet implements UserLoginService {
         BufferedReader one = req.getReader();
         String oneLine = one.readLine();
         User Json = JSON.parseObject(oneLine, User.class);
+
+        if(!csmht.Model.Captcha.isCaptcha(req,res,Json.getCaptcha())){
+            res.getWriter().write("Captcha");
+            res.getWriter().close();
+            return;
+        }
+
+
         Connection con = Pool.Pool.getPool();
         ResultSet rs = null;
 

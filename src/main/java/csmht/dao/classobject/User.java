@@ -8,7 +8,8 @@ import java.util.List;
 
 public class User extends UserClass {
 
-
+    @JSONField(name="captcha")
+    public String captcha;
 
     @JSONField(name="PassWord")
     private String password;
@@ -112,5 +113,7 @@ public class User extends UserClass {
         this.history_post.add(history_post);
     }
 
+    public String getCaptcha() {return captcha;}
 
+    public void setCaptcha(String captcha) {this.captcha = captcha;}
 }

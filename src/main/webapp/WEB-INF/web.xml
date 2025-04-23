@@ -4,4 +4,14 @@
 
 <web-app>
   <display-name>Archetype Created Web Application</display-name>
+
+  <servlet>
+    <servlet-name>CaptchaServlet</servlet-name>
+    <servlet-class>com.wf.captcha.servlet.CaptchaServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>CaptchaServlet</servlet-name>
+    <url-pattern>/captcha</url-pattern>
+  </servlet-mapping>
+
 </web-app>
