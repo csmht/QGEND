@@ -178,6 +178,8 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         writer.close();
     }
 
+
+
     @Override
     public void UserManyBoardHot(HttpServletRequest req, HttpServletResponse resp) throws IOException, SQLException, InterruptedException {
         UserManyBoar(req, resp, Hot);
@@ -205,6 +207,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         String oneLine = one.readLine();
         Post Json = JSON.parseObject(oneLine, Post.class);
         Connection con = Pool.Pool.getPool();
+
 
         List<Post> post = new ArrayList<>();
         ResultSet rs = null;
@@ -245,9 +248,11 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
                 Post tow ;
                 tow = Find.FindPost(con, "post_id", rs.getString("post_id"), sort);
 
+               boolean pass = Find.FindBoard(con,"board_id",rs.getString("board_id"),Hot).isPass();
+
                 if(key0.equals("user_id")){
                     post.add(tow);
-                }else if(!BaseString.sdf.parse(tow.getCreate_time()).after(new Date())) {
+                }else if(!BaseString.sdf.parse(tow.getCreate_time()).after(new Date())&&pass) {
                     post.add(tow);
                 }
 

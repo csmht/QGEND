@@ -4,6 +4,9 @@ import com.alibaba.fastjson2.annotation.JSONField;
 
 public class Report {
 
+    @JSONField(name="report_id")
+    private int report_id;
+
     @JSONField(name="report_user_id")
     private int report_user_id;
 
@@ -64,6 +67,14 @@ public class Report {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public int getReport_id() {
+        return report_id;
+    }
+
+    public void setReport_id(int report_id) {
+        this.report_id = report_id;
     }
 
 }

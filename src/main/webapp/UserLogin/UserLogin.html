@@ -2,8 +2,6 @@
 <html lang="en">
 
 <head>
-
-
   <meta charset="UTF-8">
   <title>登录与注册</title>
   <link rel="stylesheet" href="../UserLogin/UserLogin.css">
@@ -12,129 +10,135 @@
 
 <body>
 <div id="app">
-
-<div class="container">
-  <div class="toggle-buttons">
-    <button id="loginButton" @click="inLoginButtle()" class="no active">登录</button>
-    <button id="registerButton" @click="inregisterButtle()" class="no">注册</button>
+  <div class="container">
+    <div class="toggle-buttons">
+      <button id="loginButton" @click="inLoginButtle()" class="no active">登录</button>
+      <button id="registerButton" @click="inregisterButtle()" class="no">注册</button>
+    </div>
+    <form id="loginForm" v-model="LoginData" class="form active">
+      <h2>登录</h2>
+      <input type="email" placeholder="邮箱" v-model="loginEmail" name="loginUserName" id="loginUserEmail" required />
+      <input type="password" v-model="loginPassWord" placeholder="密码" name="loginPassWord" required />
+      <span id="password_err" style="display: none">密码错误</span>
+      <input type="text" v-model="loginpd" placeholder="验证码" name="loginpd" required />
+      <button type="submit" @click="LoginUser()">登录</button>
+    </form>
+    <form id="registerForm" class="form">
+      <h2>注册</h2>
+      <input type="Email" placeholder="邮箱" v-model="Email" name="Email" id="Email" required />
+      <input type="password" placeholder="密码" v-model="newPassWord" name="newPassWord" id="newPassWord" required />
+      <input type="password" placeholder="再次确认密码" v-model="aganinPassWord" name="againPassWord" id="againPassWord" required />
+      <button type="submit" name="registerSubmit" @click="registerUser()" id="newUser">注册</button>
+    </form>
   </div>
-  <form id="loginForm" v-model="LoginData" class="form active">
-    <h2>登录</h2>
-    <input type="email" placeholder="邮箱" v-model="loginEmail" name="loginUserName" id="loginUserEmail" required/>
-    <input type="password" v-model="loginPassWord" placeholder="密码" name="loginPassWord" required/>
-    <span id="password_err" style="display: none">密码错误</span>
-    <input type="text" v-model="loginpd" placeholder="验证码" name="loginpd" required/>
-    <button type="submit" @click="LoginUser()">登录</button>
-  </form>
-  <form id="registerForm"  class="form">
-    <h2>注册</h2>
-    <input type="Email" placeholder="邮箱" v-model="Email" name="Email" id="Email" required/>
-    <input type="password" placeholder="密码" v-model="newPassWord" name="newPassWord" id="newPassWord" required/>
-    <input type="password" placeholder="再次确认密码" v-model="aganinPassWord" name="againPassWord" id="againPassWord" required/>
-    <button type="submit" name="registerSubmit" @click="registerUser()" id="newUser">注册</button>
-  </form>
-</div>
-
-
-
-
 </div>
 
 <script src="../vue.js"></script>
 <script>
   new Vue({
-      el: '#app',
+    el: '#app',
+    data: {
+      return: {
+        loginUserName: '',
+        loginPassWord: '',
+        loginpd: '',
+        LoginData: '',
+        newUserName: '',
+        Email: '',
+        newPassWord: '',
+        aganinPassWord: '',
+        loginEmail: ''
+      }
+    },
+    methods: {
+      inLoginButtle() {
+        document.getElementById('loginForm').classList.add('active');
+        document.getElementById('registerForm').classList.remove('active');
+        document.getElementById('loginButton').classList.add('active');
+        document.getElementById('registerButton').classList.remove('active');
+      },
+      inregisterButtle() {
+        document.getElementById('loginForm').classList.remove('active');
+        document.getElementById('registerForm').classList.add('active');
+        document.getElementById('loginButton').classList.remove('active');
+        document.getElementById('registerButton').classList.add('active');
+      },
+      LoginUser() {
+        event.preventDefault();
+        const _this = this;
+        // 邮箱正则表达式验证
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(this.loginEmail)) {
+          alert("请输入有效的邮箱地址");
+          return;
+        }
+        // 密码正则表达式验证
+        const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d).{6,}$/;
+        if (!passwordRegex.test(this.loginPassWord)) {
+          alert("密码必须是6位数以上，并且至少包含一个英文和一个数字");
+          return;
+        }
 
-      data: {
-        return:{
-          loginUserName: '',
-          loginPassWord: '',
-          loginpd: '',
-          LoginData: '',
-          newUserName: '',
-          Email: '',
-          newPassWord: '',
-          aganinPassWord: '',
-          loginEmail:''
 
+        if (this.loginEmail!= '' && this.loginPassWord!= '') {
+          axios.post('/UserIn/UserLogin', {
+            'PassWord': this.loginPassWord,
+            'Email': this.loginEmail,
+          }).then((res) => {
+            if (res.status == 200) {
+              if (res.data === true) {
+                axios.post('/User/Find/OneUser').then((res1) => {
+                  const a = res1.data;
+                  window.location.assign("../User/UserMeun.html?user_id=" + a.user_id);
+                })
+
+              } else {
+                alert("登录失败");
+              }
+            }
+
+          }).catch()
 
         }
-     },
-
-     methods: {
-        inLoginButtle() {
-           document.getElementById('loginForm').classList.add('active');
-           document.getElementById('registerForm').classList.remove('active');
-           document.getElementById('loginButton').classList.add('active');
-           document.getElementById('registerButton').classList.remove('active');
-        },
-
-        inregisterButtle() {
-          document.getElementById('loginForm').classList.remove('active');
-          document.getElementById('registerForm').classList.add('active');
-          document.getElementById('loginButton').classList.remove('active');
-          document.getElementById('registerButton').classList.add('active');
-        },
-
-        LoginUser() {
-          event.preventDefault();
-            const _this = this;
-            if(this.loginUserName != '' && this.loginPassWord != ''){
-              axios.post('/UserIn/UserLogin', {
-                'PassWord': this.loginPassWord,
-                'Email': this.loginEmail,
-              }).then((res) => {
-                if(res.status == 200){
-                  if(res.data === true){
-                    axios.post('/User/Find/OneUser').then((res1) => {
-                      const a = res1.data;
-                      window.location.assign("../User/UserMeun.html?user_id=" + a.user_id);
-                    })
-
-                  }else{
-                    alert("登录失败");
-                  }
+      },
+      registerUser() {
+        event.preventDefault();
+        const _this = this;
+        // 邮箱正则表达式验证
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(this.Email)) {
+          alert("请输入有效的邮箱地址");
+          return;
+        }
+        // 密码正则表达式验证
+        const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d).{6,}$/;
+        if (!passwordRegex.test(this.newPassWord)) {
+          alert("密码必须是6位数以上，并且至少包含一个英文和一个数字");
+          return;
+        }
+        if (this.newPassWord!= this.aganinPassWord) {
+          alert("两次密码不同");
+        } else {
+          if (this.Email!= '' && this.newPassWord!= '') {
+            axios.post('/UserIn/UserRegister', {
+              'PassWord': this.newPassWord,
+              'Email': this.Email,
+            }).then((res) => {
+              if (res.status == 200) {
+                if (res.data == true) {
+                  alert("注册成功");
+                } else if (res.data == "more") {
+                  alert("该用户名已经存在")
+                } else {
+                  alert('注册失败');
                 }
-
-              }).catch()
-
-            }
-        },
-
-        registerUser() {
-          event.preventDefault();
-          const _this = this;
-          if(this.newUserName != '' && this.newPassWord != ''){
-            if(this.newPassWord != this.aganinPassWord) {
-              alert("两次密码不同");
-            }else {
-              axios.post('/UserIn/UserRegister', {
-                'PassWord': this.newPassWord,
-                'Email': this.Email,
-              }).then((res) => {
-                if(res.status == 200){
-                  if(res.data == true){
-                    alert("注册成功");
-                  }else if(res.data == "more"){
-                    alert("该用户名已经纯在")
-                  }else{
-                    alert('注册失败');
-                  }
-                }
-              }).catch()
-
-
-            }
+              }
+            }).catch()
           }
         }
-
-
-
-     }
-
-
+      }
+    }
   })
-
 </script>
 
 

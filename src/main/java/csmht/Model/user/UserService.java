@@ -94,6 +94,12 @@ public interface UserService {
      */
     public void BrowseUser(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, ParseException, InterruptedException;
 
+    /**
+     * 退出登录
+     * @param req
+     * @param resp
+     */
+    public void Logout(HttpServletRequest req, HttpServletResponse resp) throws IOException;
 
     /**
      * 发帖

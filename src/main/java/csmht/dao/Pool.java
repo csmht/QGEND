@@ -6,12 +6,13 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Pool {
 
     public static Pool Pool = new Pool();
-    private static final LinkedList<Connection> waitConn = new LinkedList<>();
-    private static final LinkedList<Connection> useConn = new LinkedList<>();
+    private static final CopyOnWriteArrayList<Connection> waitConn = new CopyOnWriteArrayList<>();
+    private static final CopyOnWriteArrayList<Connection> useConn = new CopyOnWriteArrayList<>();
     private static final String url = "jdbc:mysql://localhost:3306/forum?useUnicode=true&characterEncoding=UTF-8";
     private static final String user = "root";
     private static final String password = "0603";
@@ -45,7 +46,7 @@ public class Pool {
         if(waitConn.isEmpty()){
             wait();
         }
-        Connection conn = waitConn.removeFirst();
+        Connection conn = waitConn.remove(0);
         useConn.add(conn);
         connTime.In(conn);
         return conn;
@@ -95,7 +96,7 @@ public class Pool {
     public static void closePool() {
         while (!waitConn.isEmpty()) {
             try {
-                Connection conn = waitConn.removeLast();
+                Connection conn = waitConn.remove(0);
                 conn.close();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -127,7 +128,7 @@ public class Pool {
                 }
 
                 while(waitConn.size()+useConn.size()>=maxPool){
-                    Connection conn = waitConn.removeFirst();
+                    Connection conn = waitConn.remove(0);
                     conn.close();
                 }
 

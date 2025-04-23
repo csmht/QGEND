@@ -45,27 +45,28 @@
                 <h3 class="text-2xl font-bold mb-4">被举报的模块</h3>
                 <div v-for="module in reportedModules"
                      class="border-b border-gray-300 pb-4 mb-4">
-                    <h4 class="text-xl font-semibold">{{ module.title }}</h4>
+                    <h4 class="text-xl font-semibold">{{ module.board.title }}</h4>
                     <p class="text-gray-600">举报者id：{{module.report_user_id}}</p>
                     <p class="text-gray-600">举报原因：{{ module.report_content }}</p>
-                    <button @click="handleModuleReport(module.board_id, true)"
+                    <button @click="handleModuleReport(module.report_id,module.board_id, true)"
                             class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-md mr-2">通过</button>
-                    <button @click="handleModuleReport(module.board_id, false)"
+                    <button @click="handleModuleReport(module.report_id,module.board_id, false)"
                             class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-md">不通过</button>
                 </div>
             </div>
             <!-- 被举报的用户 -->
             <div v-if="currentPage === 'reportedUsers'"
                  class="bg-white p-6 rounded-md shadow-md mb-6">
-                <h3 class="text-2xl font-bold mb-4">被举报的用户</h3>
+                <h3 class="text-2xl font-bold mb-4">被举报的用户ID</h3>
                 <ul>
-                    <li v-for="user in reportedUsers" :key="user.user_id"
+                    <li v-for="user in reportedUsers" :key="user.report_id"
                         class="border-b border-gray-300 pb-4 mb-4">
-                        <p class="text-xl font-semibold">{{ user.UserName }}</p>
-                        <p class="text-gray-600">举报原因：{{ user.report_reason }}</p>
-                        <button @click="handleUserReport(user.user_id, true)"
+                        <p class="text-xl font-semibold">{{ user.report_user_id }}</p>
+                        <p class="text-gray-600">举报人ID：{{user.user.user_id}}</p>
+                        <p class="text-gray-600">举报原因：{{ user.report_content }}</p>
+                        <button @click="handleUserReport(user.report_id, true)"
                                 class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-md mr-2">通过</button>
-                        <button @click="handleUserReport(user.user_id, false)"
+                        <button @click="handleUserReport(user.report_id, false)"
                                 class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-md">不通过</button>
                     </li>
                 </ul>
@@ -106,27 +107,27 @@
         data: {
             currentPage: 'reportedModules',
             reportedModules: [],
-            reportedUsers: [
-                { user_id: 1, UserName: '用户1', report_reason: '恶意评论' },
-                { user_id: 2, UserName: '用户2', report_reason: '发布垃圾信息' }
+            reportedUsers: [],
+            pendingModules: [//申请模块
             ],
-            pendingModules: [
-                { board_id: 3, title: '模块3', content: '这是模块3的内容' },
-                { board_id: 4, title: '模块4', content: '这是模块4的内容' }
-            ],
-            logs: [
-                { id: 1, message: '管理员通过了模块1的举报处理', timestamp: '2025-04-21 10:00:00' },
-                { id: 2, message: '管理员拒绝了用户2的举报处理', timestamp: '2025-04-21 10:15:00' }
-            ]
+            logs: []
         },
         methods: {
             showPage(page) {
                 this.currentPage = page;
             },
-            handleModuleReport(moduleId, approve) {
+            handleModuleReport(report_id,moduleId, approve) {
                 if (confirm(approve? '确定通过该模块的举报处理吗？' : '确定不通过该模块的举报处理吗？')) {
                     // 这里只是模拟请求，实际使用时需要替换为真实的后端接口
-                    axios.post('/Admin/Service/HandleModuleReport', {
+                    let url ='/Admin/UnBanBoard'
+
+                    if(approve){
+                     url = '/Admin/BanBoard'
+                    }
+
+
+                    axios.post(url, {
+                        report_id: report_id,
                         board_id: moduleId,
                         approve: approve
                     })
@@ -149,9 +150,14 @@
             handleUserReport(userId, approve) {
                 if (confirm(approve? '确定通过该用户的举报处理吗？' : '确定不通过该用户的举报处理吗？')) {
                     // 这里只是模拟请求，实际使用时需要替换为真实的后端接口
-                    axios.post('/Admin/Service/HandleUserReport', {
-                        user_id: userId,
-                        approve: approve
+
+                    let UIL = '/Admin/UnBanUser'
+                    if(approve) {
+                        UIL = '/Admin/BanUser'
+                    }
+
+                    axios.post(UIL, {
+                        report_id: userId,
                     })
                         .then(response => {
                             if (response.data == "OK") {
@@ -172,7 +178,7 @@
             approveModule(moduleId) {
                 if (confirm('确定通过该模块的审核吗？')) {
                     // 这里只是模拟请求，实际使用时需要替换为真实的后端接口
-                    axios.post('/Admin/Service/ApproveModule', {
+                    axios.post('/Admin/PassBoard', {
                         board_id: moduleId
                     })
                         .then(response => {
@@ -194,7 +200,7 @@
             rejectModule(moduleId) {
                 if (confirm('确定拒绝该模块的审核吗？')) {
                     // 这里只是模拟请求，实际使用时需要替换为真实的后端接口
-                    axios.post('/Admin/Service/RejectModule', {
+                    axios.post('/Admin/UnPassBoard', {
                         board_id: moduleId
                     })
                         .then(response => {
@@ -241,7 +247,13 @@
                 // _this.reportedModules.board_id = res.data.board_id;
             })
 
+            axios.post("/Admin/FindBoard").then(res => {
+                _this.pendingModules = res.data;
+            })
 
+            axios.post("/Admin/FindBanUser").then(res => {
+                _this.reportedUsers = res.data;
+            })
 
 
 

@@ -43,7 +43,6 @@ public class AdminImpl extends UserBaseServlet implements AdminService {
         Board Json = JSON.parseObject(oneLine, Board.class);
         List<Report> board = new ArrayList<>();
         Connection con = Pool.Pool.getPool();
-        ResultSet rs = null;
         int board_id = Json.getBoard_id();
 
         try{
@@ -64,13 +63,12 @@ public class AdminImpl extends UserBaseServlet implements AdminService {
 
 
             con.commit();
+            resp.getWriter().write("OK");
+            resp.getWriter().close();
         }catch (Exception e){
             con.rollback();
             e.printStackTrace();
         }finally {
-            if(rs != null){
-                rs.close();
-            }
             Pool.Pool.returnConn(con);
         }
 
@@ -97,6 +95,7 @@ public class AdminImpl extends UserBaseServlet implements AdminService {
     private void FindBan(HttpServletRequest req, HttpServletResponse resp,String sort) throws SQLException, InterruptedException, IOException {
         List<Report> board = new ArrayList<>();
         Connection con = Pool.Pool.getPool();
+        Connection con1 = Pool.Pool.getPool();
         ResultSet rs = null;
 
         try{
@@ -109,21 +108,32 @@ public class AdminImpl extends UserBaseServlet implements AdminService {
             rs = JDBC.find(con,main,mun,key,value,"");
 
             while(rs.next()){
+
+                if(rs.getBoolean("pass")){
+                    continue;
+                }
+
                 Report b = new Report();
-                if(!Objects.equals(rs.getString(sort), "0")){
+                if(sort.equals("board_id")?!Objects.equals(rs.getString(sort), "0"):!Objects.equals(rs.getString("reported_user_id"), "0")){
 
                     if(sort.equals("board_id")){
                         Board board1 = new Board();
-                        board1 = Find.FindBoard(con,"board_id",rs.getString("board_id"),"");
+                        board1 = Find.FindBoard(con1,"board_id",rs.getString("board_id"),"");
                         b.setBoard(board1);
                     }else {
                         User u = new User();
-                        u = Find.FindUser(con,"user_id",rs.getString("user_id"),"");
-                        b.setUser(u);
+
+                        if(rs.getInt("reported_user_id")!=0){
+                            u = Find.FindUser(con1,"user_id",rs.getString("user_id"),"");
+                            b.setUser(u);
+                        }
+
                     }
 
-                    b.setReport_user_id(rs.getInt("user_id"));
+
+                    b.setReport_user_id(rs.getInt("reported_user_id"));
                     b.setContent(rs.getString("content"));
+                    b.setReport_id(rs.getInt("report_id"));
                     board.add(b);
                 }
             }
@@ -137,6 +147,7 @@ public class AdminImpl extends UserBaseServlet implements AdminService {
                 rs.close();
             }
             Pool.Pool.returnConn(con);
+            Pool.Pool.returnConn(con1);
         }
 
         String json = JSON.toJSONString(board);
@@ -152,12 +163,185 @@ public class AdminImpl extends UserBaseServlet implements AdminService {
     }
 
     @Override
-    public void BanUser(HttpServletRequest req, HttpServletResponse resp) {
+    public void BanUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+        BanUser(req,resp,"YES");
+    }
+
+    private void BanUser(HttpServletRequest req, HttpServletResponse resp, String sort) throws SQLException, InterruptedException, IOException {
+        BufferedReader one = req.getReader();
+        String oneLine = one.readLine();
+        Report Json = JSON.parseObject(oneLine, Report.class);
+
+        Connection con = Pool.Pool.getPool();
+        ResultSet rs = null;
+
+        try{
+            con.setAutoCommit(false);
+
+            String[]  main = new String[]{"report"};
+            String[] mun = new String[]{};
+            String[] key = new String[]{"report_id"};
+            String[] value = new String[]{Json.getReport_id()+""};
+
+            rs = JDBC.find(con,main,mun,key,value,"");
+            rs.next();
+            int user_id = rs.getInt("reported_user_id");
+
+
+
+            main = new String[]{"pass"};
+            mun = new String[]{"1"};
+            key = new String[]{"reported_user_id"};
+            value = new String[]{user_id + ""};
+
+            JDBC.update(con,"report",main,mun,key,value);
+
+
+            if(sort.equals("YES")){
+
+                main =new String[] {"pass"};
+                mun =new String[] {"1"};
+                key =new String[] {"user_id"};
+                value = new String[] {user_id+""};
+
+                JDBC.update(con,"user",main,mun,key,value);
+            }
+
+
+            con.commit();
+            resp.getWriter().write("OK");
+        }catch (Exception e){
+            con.rollback();
+            e.printStackTrace();
+        }finally {
+            if(rs != null){
+                rs.close();
+            }
+            Pool.Pool.returnConn(con);
+        }
+
+
+
+    }
+
+
+    @Override
+    public void UnBanUser(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, InterruptedException {
+        BanUser(req,resp,"Un");
+    }
+
+    @Override
+    public void FindBoard(HttpServletRequest req, HttpServletResponse resp) throws SQLException, InterruptedException, IOException {
+        List<Board> board = new ArrayList<>();
+        Connection con = Pool.Pool.getPool();
+        Connection con1 = Pool.Pool.getPool();
+        ResultSet rs = null;
+
+        try{
+
+           String[] main = {"board"};
+           String[] mun = {};
+           String[] key = {"pass"};
+           String[] value = {"0"};
+
+           rs = JDBC.find(con,main,mun,key,value,"");
+
+           while (rs.next()){
+               Board b ;
+               b = csmht.dao.Find.FindBoard(con1,"board_id",rs.getString("board_id"),"");
+               board.add(b);
+           }
+
+
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally{
+            if(rs != null){
+                rs.close();
+            }
+            Pool.Pool.returnConn(con);
+            Pool.Pool.returnConn(con1);
+        }
+
+        String json = JSON.toJSONString(board);
+        PrintWriter writer = resp.getWriter();
+        writer.write(json);
+        writer.close();
+    }
+
+    @Override
+    public void FindLog(HttpServletRequest req, HttpServletResponse resp) throws SQLException, InterruptedException, IOException {
 
     }
 
     @Override
-    public void UnBanUser(HttpServletRequest req, HttpServletResponse resp) {
+    public void BanBoard(HttpServletRequest req, HttpServletResponse resp) throws SQLException, InterruptedException, IOException {
+        BanBoard(req,resp,"YES");
+    }
+
+    private void BanBoard(HttpServletRequest req, HttpServletResponse resp, String sort) throws SQLException, InterruptedException, IOException {
+        BufferedReader one = req.getReader();
+        String oneLine = one.readLine();
+        Report Json = JSON.parseObject(oneLine, Report.class);
+
+        Connection con = Pool.Pool.getPool();
+        ResultSet rs = null;
+
+        try {
+            con.setAutoCommit(false);
+
+            String[]  main = new String[]{"report"};
+            String[] mun = new String[]{};
+            String[] key = new String[]{"report_id"};
+            String[] value = new String[]{Json.getReport_id()+""};
+
+            rs = JDBC.find(con,main,mun,key,value,"");
+            rs.next();
+            int board_id = rs.getInt("board_id");
+
+            main = new String[]{"pass"};
+            mun = new String[]{"1"};
+            key = new String[]{"board_id"};
+            value = new String[]{board_id+""};
+
+            JDBC.update(con,"report",main,mun,key,value);
+
+            if(sort.equals("YES")){
+                main =new String[] {"pass"};
+                mun =new String[] {"2"};
+                key =new String[] {"board_id"};
+                value = new String[] {board_id+""};
+
+                JDBC.update(con,"board",main,mun,key,value);
+            }
+
+
+            con.commit();
+
+
+            resp.getWriter().write("OK");
+        }catch (Exception e){
+            con.rollback();
+            e.printStackTrace();
+        }finally {
+            if(rs != null){
+                rs.close();
+            }
+            Pool.Pool.returnConn(con);
+        }
+
+
+
+
 
     }
+
+    @Override
+    public void UnBanBoard(HttpServletRequest req, HttpServletResponse resp) throws SQLException, InterruptedException, IOException {
+        BanBoard(req,resp,"Un");
+    }
+
+
 }

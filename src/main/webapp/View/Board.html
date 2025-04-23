@@ -326,7 +326,7 @@
             deleteReportedPost(index) {
                 if (confirm('确定要删除该被举报帖子吗？')) {
                     const postId = this.reportedPosts[index].post.id;
-                    axios.post("/User/Service/DeleteReportedPost", {
+                    axios.post("/User/Service/DeletePost", {
                         post_id: postId
                     })
                         .then(res => {
@@ -429,7 +429,7 @@
                     _this.board = response.data;
                     _this.image = `data:image/jpeg;base64,${_this.board.image}`;
                     // 获取模块创建者的用户ID
-                    this.creatorUserId = this.board.user_id;
+                    _this.creatorUserId = _this.board.user_id;
                 });
 
             axios.post('/User/Service/isFollowBoard', { "board_id": this.board_id })

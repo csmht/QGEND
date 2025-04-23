@@ -44,7 +44,7 @@ public class Deepseek extends UserBaseServlet {
         requestBody.put("model", MODEL_NAME);
         Map<String, String> message = new HashMap<>();
         message.put("role", "user");
-        message.put("content", "请用中文总结以下文本(如果是测试请回答我测试成功)：" + inputText);
+        message.put("content", "请用中文总结并解释以下文本(如果是测试请回答我测试成功)：" + inputText);
         requestBody.put("messages", new Object[]{message});
 
         Gson gson = new Gson();

@@ -7,6 +7,11 @@
     <title>帖子详情</title>
     <script src="../axios.min.js"></script>
     <script src="../vue.js"></script>
+    <link rel="stylesheet" href="../editor/css/editormd.min.css">
+    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="../editor/lib/marked.min.js"></script>
+    <script src="../editor/lib/prettify.min.js"></script>
+    <script src="../editor/editormd.js"></script>
     <link rel="stylesheet" href="../View/Post.css">
 </head>
 
@@ -17,7 +22,13 @@
         <h2>模块：{{this.boardName}}</h2>
 
         <h1 class="post-title">{{ posts.title }}</h1>
-        <p class="post-content">{{ posts.content }}</p>
+        <div>
+            <p>内容：</p>
+            <div id="editor">
+                <textarea id="appendTest" style="display:none;"></textarea>
+            </div>
+        </div>
+
         <img class="post-image" v-if="posts.image" :src="posts.image" alt="帖子图片">
         <div class="publisher-info">
             <span>发布者: {{ posts.UserName }}</span>
@@ -47,15 +58,29 @@
                     <h6>{{comment.create_time}}</h6>
                 </div>
                 <button @click="showReplyInput(comment)">回复</button>
+                <button @click="showReportReasonInput(comment)">举报用户</button>
                 <div v-if="comment.showReplyInput">
                     <textarea v-model="comment.replyText" placeholder="请输入回复内容"></textarea>
                     <button @click="submitReply(comment)">提交回复</button>
                 </div>
-                <div class="reply" v-for="reply in comment.comment_comment" :key="reply.comment_id">
-                    <div class="reply-author">
-                        <h5>用户：{{ reply.UserName }}</h5>
+                <div v-if="comment.showReportReasonInput">
+                    <textarea v-model="comment.reportReason" placeholder="请输入举报原因"></textarea>
+                    <span v-if="!comment.reportReason && comment.showError" style="color: red;">请输入举报原因</span>
+                    <button @click="submitReport(comment)">提交举报</button>
+                </div>
+                <div class="replies">
+                    <div class="reply" v-for="reply in comment.comment_comment" :key="reply.comment_id">
+                        <div class="reply-author">
+                            <h5>用户：{{ reply.UserName }}</h5>
+                        </div>
+                        <div class="reply-text"><h5>{{ reply.content }}</h5></div>
+                        <button @click="showReportReasonInput(reply)">举报用户</button>
+                        <div v-if="reply.showReportReasonInput">
+                            <textarea v-model="reply.reportReason" placeholder="请输入举报原因"></textarea>
+                            <span v-if="!reply.reportReason && reply.showError" style="color: red;">请输入举报原因</span>
+                            <button @click="submitReport(reply)">提交举报</button>
+                        </div>
                     </div>
-                    <div class="reply-text"><h5>{{ reply.content }}</h5></div>
                 </div>
             </div>
         </div>
@@ -67,6 +92,7 @@
     </div>
 </div>
 <script>
+    let Text = '';
     new Vue({
         el: '#post-app',
         data: {
@@ -122,7 +148,9 @@
                 }
             },
             showReplyInput(comment) {
-                this.$set(comment,'showReplyInput',!comment.showReplyInput);
+                this.$set(comment,'showReplyInput', true);
+                this.$set(comment,'showReportReasonInput', false);
+                this.$set(comment,'showError', false);
             },
             submitReply(comment) {
                 if (comment.replyText.trim()!== '') {
@@ -138,6 +166,10 @@
 
                 }
             },
+            renderMarkdown(markdown) {
+                if (!markdown) return '';
+                return marked.parse(markdown);
+            },
             refresh() {
                 let _this = this;
 
@@ -145,9 +177,11 @@
                     _this.posts = response.data;
                     _this.posts.image = 'data:image/jpeg;base64,' + _this.posts.image;
                     _this.comments = _this.posts.PostComment;
-
+                    Text = _this.posts.content;
                     for (let i = 0; i < _this.comments.length; i++) {
                         _this.comments[i].showReplyInput = false;
+                        _this.comments[i].showReportReasonInput = false;
+                        _this.comments[i].showError = false;
                     }
 
                     axios.post("/User/Find/OneBoard", {
@@ -160,6 +194,8 @@
                 })
                 for (let i = 0; i < _this.comments.length; i++) {
                     _this.comments[i].showReplyInput = false;
+                    _this.comments[i].showReportReasonInput = false;
+                    _this.comments[i].showError = false;
                 }
 
             },
@@ -187,7 +223,6 @@
                     }
                 })
             },
-            // 新增方法，用于获取AI解释内容
             getAIExplanation() {
                 let _this = this;
                 axios.post("/AI", {
@@ -195,7 +230,33 @@
                 }).then(res => {
                     _this.aiExplanation = res.data.content;
                 })
+            },
+            showReportReasonInput(target) {
+                this.$set(target,'showReportReasonInput', true);
+                this.$set(target,'showReplyInput', false);
+                this.$set(target,'showError', false);
+            },
+            submitReport(target) {
+                if (!target.reportReason) {
+                    this.$set(target,'showError', true);
+                    return;
+                }
+                let _this = this;
+                axios.post("/User/Service/BrowseUser", {
+                    user_id: target.user_id,
+                    content: target.reportReason
+                }).then(res => {
+                    if (res.data === "OK") {
+                        alert("举报成功");
+                    } else {
+                        alert("举报失败");
+                    }
+                    this.$set(target,'showReportReasonInput', false);
+                    this.$set(target,'reportReason', '');
+                    this.$set(target,'showError', false);
+                })
             }
+
         },
         beforeMount() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -204,11 +265,55 @@
 
             axios.post("/User/Find/OnePost", { "post_id": this.post_id }).then((response) => {
                 _this.posts = response.data;
-                _this.posts.image = 'data:image/jpeg;base64,' + _this.posts.image;
+                if(_this.posts.image){
+                    _this.posts.image = 'data:image/jpeg;base64,' + _this.posts.image;
+                }
+
                 _this.comments = _this.posts.PostComment;
+                Text = _this.posts.content;
+
+                $("#editor").html('<textarea id="appendTest" style="display:none;"></textarea>');
+                $("#appendTest").val(_this.posts.content);
+                editormd.markdownToHTML("editor", {
+                    htmlDecode: "style,script,iframe", //可以过滤标签解码
+                    emoji: true,
+                    taskList:true,
+                    tex: true,               // 默认不解析
+                    flowChart:true,         // 默认不解析
+                    sequenceDiagram:true,  // 默认不解析
+                });
+
+
+
 
                 for (let i = 0; i < _this.comments.length; i++) {
-                    _this.comments[i].showReplyInput = false;
+                    if (!_this.comments[i].hasOwnProperty('showReplyInput')) {
+                        _this.$set(_this.comments[i],'showReplyInput', false);
+                    }
+                    if (!_this.comments[i].hasOwnProperty('showReportReasonInput')) {
+                        _this.$set(_this.comments[i],'showReportReasonInput', false);
+                    }
+                    if (!_this.comments[i].hasOwnProperty('showError')) {
+                        _this.$set(_this.comments[i],'showError', false);
+                    }
+                    if (!_this.comments[i].hasOwnProperty('reportReason')) {
+                        _this.$set(_this.comments[i],'reportReason', '');
+                    }
+                    for (let j = 0; j < _this.comments[i].comment_comment.length; j++) {
+                        const reply = _this.comments[i].comment_comment[j];
+                        if (!reply.hasOwnProperty('showReplyInput')) {
+                            _this.$set(reply,'showReplyInput', false);
+                        }
+                        if (!reply.hasOwnProperty('showReportReasonInput')) {
+                            _this.$set(reply,'showReportReasonInput', false);
+                        }
+                        if (!reply.hasOwnProperty('showError')) {
+                            _this.$set(reply,'showError', false);
+                        }
+                        if (!reply.hasOwnProperty('reportReason')) {
+                            _this.$set(reply,'reportReason', '');
+                        }
+                    }
                 }
 
                 axios.post("/User/Find/OneBoard", {
@@ -218,6 +323,14 @@
 
 
                 })
+
+                axios.post("/User/Service/isFollowUser", {
+                    user_id: _this.posts.user_id
+                }).then((response) => {
+                    this.isFollowing = response.data;
+                });
+
+
             })
 
             axios.post("/User/Service/isLike", {
@@ -229,17 +342,30 @@
                     _this.isLiked = false;
                 }
             })
-
-            // 检查是否已关注用户
-
-            axios.post("/User/Service/isFollowUser", { "user_id": this.posts.user_id })
-                .then((response) => {
-                    this.isFollowing = response.data;
-                });
-
+        },
+        mounted() {
 
         }
+
     });
+
+
+    // var editor = editormd("editor", {
+    //     // 这里的尺寸必须在这里设置，设置样式会被 editormd 自动覆盖
+    //     width: "100%",
+    //     // 设置高度
+    //     height: "500px",
+    //     // 编辑器中初始内容
+    //     // 指定插件路径
+    //     path: "../editor/lib/",
+    //     markdown: Text, // 设置初始 Markdown 内容
+    //     readOnly: true // 设置为只读模式，仅用于显示
+    //
+    // });
+
+
+
+
 </script>
 </body>
 

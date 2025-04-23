@@ -86,3 +86,24 @@ body {
     border: 1px solid #ccc;
     border-radius: 5px;
 }
+.comment {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.replies {
+    margin-left: 20px;
+    border-left: 1px solid #ccc;
+    padding-left: 10px;
+}
+
+.reply {
+    border: 1px solid #eee;
+    padding: 5px;
+    margin-bottom: 5px;
+}
+
+.editormd-edit-area {
+    display: none;
+}

@@ -16,7 +16,7 @@ public class RedisPool {
             jedisPoolConfig.setMaxIdle(10);
             jedisPoolConfig.setMinIdle(3);
             jedisPoolConfig.setMaxWait(Duration.ofSeconds(3));
-            jedisPool = new JedisPool(jedisPoolConfig,"10.44.252.185",6379,1000);
+            jedisPool = new JedisPool(jedisPoolConfig,"10.44.252.185",6379,1000,"0603");
         }
 
         public static Jedis getJedis() {

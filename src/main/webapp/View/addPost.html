@@ -7,6 +7,11 @@
     <title>发帖页面</title>
     <script src="../axios.min.js"></script>
     <script src="../vue.js"></script>
+    <link rel="stylesheet" href="../editor/css/editormd.min.css">
+    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="../editor/lib/marked.min.js"></script>
+    <script src="../editor/lib/prettify.min.js"></script>
+    <script src="../editor/editormd.js"></script>
     <link rel="stylesheet" href="addPost.css">
 </head>
 
@@ -21,9 +26,13 @@
         </div>
         <!-- 帖子内容 -->
         <div class="form-group">
-            <label for="content">帖子内容</label>
+            <label >帖子内容</label>
 
-            <textarea id="content" rows="6" v-model="post.content" placeholder="请输入帖子内容"></textarea>
+<!--            <textarea id="content" rows="6" v-model="post.content" placeholder="请输入帖子内容"></textarea>-->
+        </div>
+
+        <div id="editor">
+
         </div>
         <!-- 帖子发布时间 -->
         <div class="form-group">
@@ -55,6 +64,7 @@
             }
         },
         methods: {
+
             handleFileChange(e) {
                 const _this = this;
                 const file = e.target.files[0];
@@ -83,7 +93,7 @@
 
                 axios.post("/User/Service/AddPost",{
                     title: _this.post.title,
-                    content: _this.post.content,
+                    content: editor.getMarkdown(),
                     create_time: _this.post.create_time,
                     image: _this.image,
                     board_id: _this.board_id,
@@ -110,6 +120,18 @@
             this.board_title = urlParams.get('board_title');
             var _this = this;
         }
+    });
+
+
+    var editor = editormd("editor", {
+        // 这里的尺寸必须在这里设置，设置样式会被 editormd 自动覆盖
+        width: "100%",
+        // 设置高度
+        height: "500px",
+        // 编辑器中初始内容
+        markdown: "# 在这里写下一篇博客",
+        // 指定插件路径
+        path: "../editor/lib/"
     });
 </script>
 </body>

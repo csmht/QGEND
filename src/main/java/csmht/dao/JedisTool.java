@@ -9,6 +9,11 @@ import java.util.Set;
 
 public class JedisTool {
 
+    static {
+
+    }
+
+
     public static void LikeComment(String user_id,String comment_id) throws ParseException {
         String userLike = "user" + user_id + "likeComment";
         Jedis jedis = RedisPool.getJedis();

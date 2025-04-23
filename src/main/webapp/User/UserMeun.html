@@ -24,6 +24,8 @@
         <button @click="showPage('myPosts')">我的帖子</button>
         <button @click="showPage('myModules')">我的模块</button>
         <button @click="showPage('postHistory')">帖子足迹</button>
+        <!-- 新增退出登录按钮 -->
+        <button @click="logout">退出登录</button>
     </aside>
     <!-- 主内容区域 -->
     <main>
@@ -143,7 +145,7 @@
             hasPendingModule: false // 新增，标志是否有正在审核的模块
         },
         methods: {
-            toAdmin(){
+            toAdmin() {
                 window.open(`../admin/admin.html`);
             },
             CloseImage(event) {
@@ -172,7 +174,7 @@
                 window.open(`../View/Board.html?board_id=${board_id}`, "_blank")
             },
             openEditModal() {
-                this.editUser = {...this.user};
+                this.editUser = {...this.user };
                 this.editModalVisible = true;
             },
             closeEditModal() {
@@ -185,7 +187,7 @@
                     Email: this.editUser.Email,
                     image: this.editUser.image,
                 })
-                this.user = {...this.editUser};
+                this.user = {...this.editUser };
                 this.editModalVisible = false;
             },
             deletePost(postId, event) {
@@ -236,11 +238,29 @@
             // 新增打开管理员菜单方法
             openAdminMenu() {
                 window.location.assign("../Admin/AdminManage.html");
+            },
+            // 新增退出登录方法
+            logout() {
+                if (confirm('确定要退出登录吗？')) {
+                    axios.post('/User/Service/Logout')
+                        .then(response => {
+                            if (response.data === 'OK') {
+                                // 退出登录成功，跳转到登录页面
+                                window.location.assign('../View/Login.html');
+                            } else {
+                                alert('退出登录失败');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('退出登录时出错:', error);
+                            alert('退出登录时出现错误');
+                        });
+                }
             }
         },
         filters: {
             truncate(value) {
-                if (typeof value === 'string') {
+                if (typeof value ==='string') {
                     return value.length > 20? value.slice(0, 20) + "..." : value;
                 }
                 return '';

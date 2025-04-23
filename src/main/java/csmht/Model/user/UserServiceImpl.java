@@ -449,8 +449,8 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
 
         String[] main = {"board"};
         String[] mun = {};
-        String[] key = {"board.user_id"};
-        String[] value = {Json.getUser_id()+""};
+        String[] key = {"board.user_id","board_id"};
+        String[] value = {Json.getUser_id()+"",Json.getBoard_id()+""};
 
         //是否有删除权限
         rs = JDBC.find(con,main,mun,key,value,"");
@@ -462,6 +462,8 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
             }else {
                 admin = true;
             }
+        }else {
+            admin = true;
         }
 
         Connection con1 = Pool.Pool.getPool();
@@ -517,7 +519,6 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
         }
 
     }
-
 
     @Override
     public void ChangeUser(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException {
@@ -615,12 +616,6 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
     private void FollowBoard(HttpServletRequest req, HttpServletResponse res,String sort) throws SQLException, IOException, ParseException, InterruptedException {
         Follow(req,res,sort,"board");
     }
-
-
-
-
-
-
 
 
 
@@ -1030,6 +1025,14 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
     @Override
     public void BrowseUser(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, ParseException, InterruptedException {
         Browse(req,res,"user");
+    }
+
+    @Override
+    public void Logout(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        HttpSession session = req.getSession();
+        session.invalidate();
+        resp.getWriter().write("OK");
+        resp.getWriter().close();
     }
 
     private void Browse(HttpServletRequest req, HttpServletResponse res,String sort) throws SQLException, IOException, InterruptedException, ParseException {
