@@ -77,8 +77,6 @@ public class JDBC {
      */
     public static int add(Connection conn,String main,String[] key,Object[] val) throws SQLException {
 
-
-
         StringBuilder sql = new StringBuilder("insert into ");
         sql.append(main).append(" (");
         sql.append(key[0]);

@@ -1,17 +1,12 @@
 package csmht.dao;
 
+
 import redis.clients.jedis.Jedis;
 
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class JedisTool {
-
-    static {
-
-    }
 
 
     public static void LikeComment(String user_id,String comment_id) throws ParseException {
@@ -49,7 +44,6 @@ public class JedisTool {
         jedis.close();
         return ans;
     }
-
 
     public static void ViewPost(String user_id,String post_id) throws ParseException {
         String now = BaseString.getTime("1000-01-01 00:00:00");
@@ -190,6 +184,12 @@ public class JedisTool {
         jedis.close();
     }
 
+    /**
+     * user_id关注board_id
+     * @param user_id
+     * @param board_id
+     * @return
+     */
     public static Boolean isFollowUser(String user_id,String board_id){
         Jedis jedis = RedisPool.getJedis();
         String userFollow = "userFollow" + user_id + "follow";
@@ -247,4 +247,11 @@ public class JedisTool {
         jedis.close();
         return ans;
     }
+
+
+
+
+
+
+
 }

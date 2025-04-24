@@ -18,6 +18,8 @@
     <div class="search-box">
         <input type="text" v-model="find" placeholder="搜索帖子或板块">
         <button @click="search()">搜索</button>
+        <!-- 新增进入聊天按钮 -->
+
     </div>
     <div class="container">
         <div class="posts-section">
@@ -91,6 +93,7 @@
             InBoard(board_id) {
                 window.open(`../View/Board.html?board_id=${board_id}`, "_blank")
             },
+            // 新增进入聊天方法
 
         },
         beforeMount() {

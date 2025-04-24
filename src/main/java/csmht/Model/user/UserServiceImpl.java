@@ -939,6 +939,12 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
 
     }
 
+    @Override
+    public void chat(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException {
+
+
+    }
+
 
     @Override
     public void addCommentToPost(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException {
@@ -1100,5 +1106,7 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
     public void DeleteCommentToPost(HttpServletRequest req, HttpServletResponse res) throws SQLException {
 
     }
+
+
 
 }

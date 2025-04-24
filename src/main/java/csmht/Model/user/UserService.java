@@ -241,4 +241,16 @@ public interface UserService {
      * @throws ParseException
      */
     public void BanUser(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException;
+
+    /**
+     * 进入聊天
+     * @param req
+     * @param res
+     * @throws SQLException
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ParseException
+     */
+    public void chat(HttpServletRequest req, HttpServletResponse res) throws SQLException, IOException, InterruptedException, ParseException;
+
 }
