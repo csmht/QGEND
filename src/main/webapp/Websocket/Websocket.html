@@ -32,11 +32,10 @@
   <div class="chat-window">
     <!-- 显示当前聊天对象的标题 -->
     <h2 v-if="selectedFriend">与 {{ getFriendName(selectedFriend) }} 的聊天</h2>
-    <button @click="CeShi()">测试</button>
     <!-- 聊天消息显示区域 -->
     <div class="chat-messages">
       <!-- 循环渲染与当前好友的聊天消息 -->
-      <p v-for="message in getMessagesForFriend(selectedFriend) ">
+      <p v-for="message in getMessagesForFriend(selectedFriend)">
 
         <!-- 对方发送的消息样式 -->
         <span v-if="message.form === selectedFriend" class="message-other">
@@ -75,20 +74,6 @@
       this.initWebSocket();
     },
     methods: {
-      CeShi() {
-        var self = {
-          id: 1,
-          form: '682',
-          to: '682',
-          content: '测试'
-        };
-        var es =[self,self,self];
-        this.$set(this, 'websocketClasses', es);
-        console.log(this.websocketClasses);
-        this.$nextTick(() => {
-          console.log('DOM 更新后:', this.websocketClasses);
-        });
-      },
       initWebSocket() {
         this.socket = new WebSocket('ws://localhost:8080/chat'); // 替换为实际的 WebSocket 地址
         this.socket.onopen = () => {
@@ -100,8 +85,9 @@
             // 使用Vue.set确保数组更新能被检测到
             this.$set(this, 'users', data.users);
             this.$set(this, 'websocketClasses', data.websocketClasses);
-            console.log(this.websocketClasses);
-            console.log(data.websocketClasses);
+
+            // 对 websocketClasses 按照 id 从小到大排序
+            this.websocketClasses.sort((a, b) => a.id - b.id);
           } catch (error) {
             console.error('数据解析错误:', error);
           }
@@ -118,7 +104,7 @@
       },
       getFriendName(friendId) {
         const friend = this.users.find(user => user.user_id === friendId);
-        return friend ? friend.UserName : '';
+        return friend? friend.UserName : '';
       },
       getMessagesForFriend(friendId) {
         if (!friendId) return [];
@@ -128,7 +114,7 @@
         });
       },
       sendMessage() {
-        if (this.newMessage.trim() === '' || !this.selectedFriend) return;
+        if (this.newMessage.trim() === '' ||!this.selectedFriend) return;
         const message = {
           form: this.currentUserId,
           to: this.selectedFriend,

@@ -20,6 +20,8 @@
         <button @click="openHome()">查看热门帖子</button>
         <button @click="showPage('profile')">个人信息中心</button>
         <button @click="showPage('followedUsers')">关注的用户</button>
+        <!-- 新增查看关注你的用户按钮 -->
+        <button @click="showPage('followers')">查看关注你的用户</button>
         <button @click="showPage('followedSections')">关注的板块</button>
         <button @click="showPage('myPosts')">我的帖子</button>
         <button @click="showPage('myModules')">我的模块</button>
@@ -47,7 +49,20 @@
         <div class="follow-section" v-if="currentPage === 'followedUsers'">
             <h3>关注的用户</h3>
             <ul>
-                <li v-for="user in followedUsers">{{ user.follow_user.UserName }}</li>
+                <li v-for="user in followedUsers">
+                    {{ user.follow_user.UserName }}
+                    <button @click="unfollow(user.follow_user.user_id)">取关</button>
+                </li>
+            </ul>
+        </div>
+        <!-- 查看关注你的用户 -->
+        <div class="follow-section" v-if="currentPage === 'followers'">
+            <h3>关注你的用户</h3>
+            <ul>
+                <li v-for="follower in followers">
+                    {{ follower.UserName }}
+                    <button @click="followBack(follower.user_id)">回关</button>
+                </li>
             </ul>
         </div>
         <!-- 关注的板块 -->
@@ -98,7 +113,7 @@
         </div>
         <!-- 用户看过的帖子 -->
         <div v-if="currentPage === 'postHistory'">
-            <div class="post" v-for="post in posts"  @click="InPost(post.historyPost.post_id)">
+            <div class="post" v-for="post in posts" @click="InPost(post.historyPost.post_id)">
                 <h3>{{ post.historyPost.title }}</h3>
                 <p>{{ post.historyPost.content | truncate }}</p>
 
@@ -143,7 +158,8 @@
             unpublishedPosts: [], // 新增，存储未发布的帖子
             approvedModules: [], // 新增，存储已通过审核的模块
             pendingModules: [], // 新增，存储正在审核的模块
-            hasPendingModule: false // 新增，标志是否有正在审核的模块
+            hasPendingModule: false, // 新增，标志是否有正在审核的模块
+            followers: [] // 新增，存储关注你的用户
         },
         methods: {
             toAdmin() {
@@ -157,7 +173,6 @@
                     const reader = new FileReader();
                     reader.onload = function (e) {
                         _this.editUser.image = e.target.result;
-
                     };
                     reader.readAsDataURL(a);
                 }
@@ -261,6 +276,81 @@
             enterChat(ID) {
                 // 这里需要替换为实际的聊天页面地址
                 window.open(`../Websocket/Websocket.html?userId=${ID}`, '_blank');
+            },
+            unfollow(followedUserId) {
+                if (confirm('确定要取关该用户吗？')) {
+                    let _this = this;
+                    axios.post("/User/Service/UnFollowUser", {
+                        user_id: followedUserId
+                    }).then(res => {
+                        if (res.data === "OK") {
+                            axios.post("/User/Find/MyUser", {
+                                user_id: _this.user.user_id,
+                            }).then((response) => {
+                                _this.user = response.data;
+                                _this.followedUsers = _this.user.follow_user;
+                                _this.followedSections = _this.user.follow_board;
+                                _this.posts = _this.user.history_post;
+                                _this.editUser.UserName = _this.user.UserName;
+                                _this.editUser.Email = _this.user.Email;
+                                _this.user.image = `data:image/jpeg;base64,${_this.user.image}`;
+                            })
+                            axios.post("/User/Find/Followers", {
+                                user_id: _this.user.user_id
+                            }).then((response) => {
+                                _this.followers = response.data;
+                            });
+                        } else {
+                            alert("取关失败");
+                        }
+                    })
+                }
+            },
+            followBack(followerUserId) {
+                if (confirm('确定要回关该用户吗？')) {
+
+                        let _this = this;
+                        axios.post("/User/Service/FollowUser", {
+                            user_id: followerUserId
+                        }).then(res => {
+                            if (res.data === "OK") {
+                                axios.post("/User/Find/MyUser", {
+                                    user_id: _this.user.user_id,
+                                }).then((response) => {
+                                    _this.user = response.data;
+                                    _this.followedUsers = _this.user.follow_user;
+                                    _this.followedSections = _this.user.follow_board;
+                                    _this.posts = _this.user.history_post;
+                                    _this.editUser.UserName = _this.user.UserName;
+                                    _this.editUser.Email = _this.user.Email;
+                                    _this.user.image = `data:image/jpeg;base64,${_this.user.image}`;
+                                })
+                                axios.post("/User/Find/Followers", {
+                                    user_id: _this.user.user_id
+                                }).then((response) => {
+                                    _this.followers = response.data;
+                                });
+                            } else {
+                                alert("关注失败");
+                            }
+                        })
+
+                }
+            },
+            fetchFollowedUsers() {
+                axios.post("/User/Find/MyUser", {
+                    user_id: this.user.user_id,
+                }).then((response) => {
+                    this.user = response.data;
+                    this.followedUsers = this.user.follow_user;
+                });
+            },
+            fetchFollowers() {
+                axios.post("/User/Find/Followers", {
+                    user_id: this.user.user_id
+                }).then((response) => {
+                    this.followers = response.data;
+                });
             }
         },
         filters: {
@@ -317,6 +407,12 @@
                     }
                 });
             })
+            // 新增获取关注你的用户的请求
+            axios.post("/User/Find/Followers", {
+                user_id: _this.user.user_id
+            }).then((response) => {
+                _this.followers = response.data;
+            });
         }
     });
 </script>

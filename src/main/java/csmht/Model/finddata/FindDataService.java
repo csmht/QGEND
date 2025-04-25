@@ -8,7 +8,15 @@ import java.text.ParseException;
 
 public interface FindDataService {
 
-
+    /**
+     * 查找关注你的用户
+     * @param req
+     * @param resp
+     * @throws SQLException
+     * @throws IOException
+     * @throws ParseException
+     */
+    public void Followers(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, ParseException;
 
     /**
      * 用户

@@ -73,6 +73,14 @@ public class WebsocketClass {
         this.websocketClasses = websocketClasses;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public static void Save(Object form, Object to, String content) throws SQLException, InterruptedException {
         Connection con = Pool.Pool.getPool();
         con.setAutoCommit(false);
@@ -102,6 +110,7 @@ public class WebsocketClass {
             wc.setForm(rs.getInt("form"));
             wc.setTo(rs.getInt("toto"));
             wc.setContent(rs.getString("content"));
+            wc.setId(rs.getInt("chat_id"));
             list.add(wc);
         }
         key[0] = "toto";

@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import csmht.dao.*;
 import csmht.dao.classobject.*;
 import csmht.View.UserBaseServlet;
+import org.json.JSONString;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -179,6 +180,37 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
     }
 
 
+    @Override
+    public void Followers(HttpServletRequest req, HttpServletResponse resp) throws SQLException, IOException, ParseException {
+        List<User> user = new ArrayList<>();
+        Connection con = null;
+        try {
+            con = Pool.Pool.getPool();
+            HttpSession session = req.getSession();
+            String id = (String) session.getAttribute("id");
+
+            Set<String> follower = JedisTool.FindUserFollower(id);
+
+
+            for (String user_id : follower) {
+                if(JedisTool.isFollowUser(id,user_id)){
+                    continue;
+                }
+                User u;
+                u = Find.FindUser(con,"user_id",user_id,"");
+                user.add(u);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            Pool.Pool.returnConn(con);
+        }
+
+        String json = JSON.toJSONString(user);
+        PrintWriter writer = resp.getWriter();
+        writer.write(json);
+        writer.close();
+    }
 
     @Override
     public void UserManyBoardHot(HttpServletRequest req, HttpServletResponse resp) throws IOException, SQLException, InterruptedException {

@@ -3,11 +3,21 @@ package csmht.dao;
 
 import redis.clients.jedis.Jedis;
 
+
 import java.text.ParseException;
 import java.util.*;
 
 public class JedisTool {
 
+    public static Set<String> FindUserFollower(String id){
+        Jedis jedis = RedisPool.getJedis();
+        String follower = "userFollow"+id+"follower";
+
+        Set<String> ans = jedis.smembers(follower);
+
+        jedis.close();
+        return ans;
+    }
 
     public static void LikeComment(String user_id,String comment_id) throws ParseException {
         String userLike = "user" + user_id + "likeComment";
