@@ -596,7 +596,7 @@ public class UserServiceImpl extends UserBaseServlet implements UserService {
         HttpSession session = req.getSession();
         int a  = Integer.parseInt(session.getAttribute("id").toString());
 
-        Boolean pd = csmht.dao.JedisTool.isFollowUser(a+"",Json.getBoard_id()+"");
+        Boolean pd = csmht.dao.JedisTool.isFollowBoard(a+"",Json.getBoard_id()+"");
 
         res.getWriter().write(pd + "");
         res.getWriter().close();

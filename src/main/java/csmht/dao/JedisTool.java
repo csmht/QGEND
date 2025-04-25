@@ -19,28 +19,6 @@ public class JedisTool {
         return ans;
     }
 
-    public static void LikeComment(String user_id,String comment_id) throws ParseException {
-        String userLike = "user" + user_id + "likeComment";
-        Jedis jedis = RedisPool.getJedis();
-        String now = BaseString.getTime("1000-01-01 00:00:00");
-        jedis.hset(userLike,comment_id,now);
-        String postLike = "comment" + comment_id + "like";
-        jedis.sadd(postLike,user_id);
-        jedis.incrBy("commentLike"+comment_id,1);
-        jedis.close();
-    }
-
-    public static void unLikeComment(String user_id,String comment_id) throws ParseException {
-        String userLike = "user" + user_id + "likeComment";
-        Jedis jedis = RedisPool.getJedis();
-
-        jedis.hdel(userLike,comment_id);
-        String postLike = "comment" + comment_id + "like";
-        jedis.srem(postLike,user_id);
-        jedis.incrBy("commentLike"+comment_id,-1);
-        jedis.close();
-    }
-
     public static int FindCommentLike(String comment_id) throws ParseException {
         Jedis jedis = RedisPool.getJedis();
         int ans;
@@ -101,14 +79,16 @@ public class JedisTool {
         String now = BaseString.getTime("1000-01-01 00:00:00");
 
         Jedis jedis = RedisPool.getJedis();
+        if(!isLike(user_id,post_id)){
+            String userLike = "user" + user_id + "like";
+            jedis.hset(userLike,post_id,now);
+            String postLike = "post" + post_id + "like";
+            jedis.sadd(postLike,user_id);
 
-        String userLike = "user" + user_id + "like";
-        jedis.hset(userLike,post_id,now);
-        String postLike = "post" + post_id + "like";
-        jedis.sadd(postLike,user_id);
 
+            jedis.incr("post"+ post_id +"Like" );
+        }
 
-        jedis.incr("post"+ post_id +"Like" );
         jedis.close();
     }
 
@@ -171,7 +151,6 @@ public class JedisTool {
         return map;
     }
 
-
     public static void FollowUser(String user_id,String board_id) throws ParseException {
         String now = BaseString.getTime("1000-01-01 00:00:00");
         Jedis jedis = RedisPool.getJedis();
@@ -182,8 +161,6 @@ public class JedisTool {
 
         jedis.close();
     }
-
-
 
     public static void unFollowUser(String user_id,String board_id){
         Jedis jedis = RedisPool.getJedis();

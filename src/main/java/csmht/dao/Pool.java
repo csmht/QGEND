@@ -127,9 +127,13 @@ public class Pool {
                     }
                 }
 
-                while(waitConn.size()+useConn.size()>=maxPool){
-                    Connection conn = waitConn.remove(0);
-                    conn.close();
+                while(waitConn.size()+useConn.size()>maxPool){
+                    if(!waitConn.isEmpty()){
+                        Connection conn = waitConn.remove(0);
+                        conn.close();
+                    }
+
+
                 }
 
                 for(Connection conn : waitConn){

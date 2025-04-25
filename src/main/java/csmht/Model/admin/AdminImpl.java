@@ -102,16 +102,13 @@ public class AdminImpl extends UserBaseServlet implements AdminService {
 
             String[] main = {"report"};
             String[] mun = {};
-            String[] key = {};
-            String[] value = {};
+            String[] key = {"pass"};
+            String[] value = {"0"};
 
             rs = JDBC.find(con,main,mun,key,value,"");
 
             while(rs.next()){
 
-                if(rs.getBoolean("pass")){
-                    continue;
-                }
 
                 Report b = new Report();
                 if(sort.equals("board_id")?!Objects.equals(rs.getString(sort), "0"):!Objects.equals(rs.getString("reported_user_id"), "0")){

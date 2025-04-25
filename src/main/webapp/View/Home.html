@@ -14,6 +14,7 @@
 
 <body>
 <div id="app">
+
     <!-- 添加搜索框 -->
     <div class="search-box">
         <input type="text" v-model="find" placeholder="搜索帖子或板块">
@@ -93,6 +94,8 @@
             InBoard(board_id) {
                 window.open(`../View/Board.html?board_id=${board_id}`, "_blank")
             },
+
+
             // 新增进入聊天方法
 
         },

@@ -105,8 +105,7 @@ public class Websocket {
 
     @OnError
     public void onError(Session session, Throwable throwable) {
-        System.err.println("WebSocket 发生错误: " + throwable.getMessage());
-        // 可以在这里添加更详细的错误处理逻辑，比如记录日志、通知用户等
+
         try {
             if (session != null && session.isOpen()) {
                 session.close();
