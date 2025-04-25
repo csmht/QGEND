@@ -3,7 +3,6 @@ package csmht.dao.classobject;
 import com.alibaba.fastjson2.annotation.JSONField;
 import csmht.dao.JDBC;
 import csmht.dao.Pool;
-import csmht.dao.UserClass;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -119,6 +118,7 @@ public class WebsocketClass {
             WebsocketClass wc = new WebsocketClass();
             wc.setForm(rs.getInt("form"));
             wc.setTo(rs.getInt("toto"));
+            wc.setId(rs.getInt("chat_id"));
             wc.setContent(rs.getString("content"));
             list.add(wc);
         }

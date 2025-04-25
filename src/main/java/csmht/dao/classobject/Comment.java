@@ -1,7 +1,6 @@
 package csmht.dao.classobject;
 
 import com.alibaba.fastjson2.annotation.JSONField;
-import csmht.dao.UserClass;
 
 import java.util.ArrayList;
 import java.util.List;

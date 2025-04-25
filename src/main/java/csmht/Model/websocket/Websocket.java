@@ -2,11 +2,13 @@ package csmht.Model.websocket;
 
 import com.alibaba.fastjson2.JSON;
 import csmht.dao.*;
+import csmht.dao.classobject.UserClass;
 import csmht.dao.classobject.WebsocketClass;
 
 import javax.servlet.http.HttpSession;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
+import java.io.IOException;
 import java.sql.Connection;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -99,5 +101,18 @@ public class Websocket {
             userSessionMap.remove(session.getId());
         }
 
+    }
+
+    @OnError
+    public void onError(Session session, Throwable throwable) {
+        System.err.println("WebSocket 发生错误: " + throwable.getMessage());
+        // 可以在这里添加更详细的错误处理逻辑，比如记录日志、通知用户等
+        try {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
+        } catch (IOException e) {
+            System.err.println("关闭连接时出错: " + e.getMessage());
+        }
     }
 }

@@ -67,7 +67,8 @@
       selectedFriend: null, // 当前选中的好友 ID
       newMessage: '', // 待发送的新消息
       currentUserId: '1', // 当前用户的 ID，这里设置为 1 作为测试
-      socket: null // WebSocket 实例
+      socket: null ,// WebSocket 实例
+      pd:true
     },
     mounted() {
       // 初始化 WebSocket 连接
@@ -75,6 +76,7 @@
     },
     methods: {
       initWebSocket() {
+        let _this = this;
         this.socket = new WebSocket('ws://localhost:8080/chat'); // 替换为实际的 WebSocket 地址
         this.socket.onopen = () => {
           console.log('WebSocket 连接已建立');
@@ -83,11 +85,20 @@
           try {
             const data = JSON.parse(event.data);
             // 使用Vue.set确保数组更新能被检测到
-            this.$set(this, 'users', data.users);
-            this.$set(this, 'websocketClasses', data.websocketClasses);
+            //
+
 
             // 对 websocketClasses 按照 id 从小到大排序
-            this.websocketClasses.sort((a, b) => a.id - b.id);
+            if(_this.pd){
+              this.$set(this, 'users', data.users);
+              this.$set(this, 'websocketClasses', data.websocketClasses);
+
+              this.websocketClasses.sort((a, b) => a.id - b.id);
+              _this.pd=false;
+            }else {
+              this.websocketClasses.push(data);
+            }
+
           } catch (error) {
             console.error('数据解析错误:', error);
           }

@@ -1,4 +1,4 @@
-package csmht.dao;
+package csmht.dao.classobject;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 

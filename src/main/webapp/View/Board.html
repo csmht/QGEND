@@ -430,7 +430,7 @@
                     _this.image = `data:image/jpeg;base64,${_this.board.image}`;
                     // 获取模块创建者的用户ID
                     _this.creatorUserId = _this.board.user_id;
-                });
+
 
             axios.post('/User/Service/isFollowBoard', { "board_id": this.board_id })
                 .then((response) => {
@@ -448,6 +448,10 @@
                 .then((response) => {
                     this.isFollowingUser = response.data;
                 });
+
+
+        });
+
         },
         filters: {
             truncate(value) {
