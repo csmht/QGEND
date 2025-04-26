@@ -603,7 +603,7 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
             String[] key ={};
             String[] value ={a+"",a+""};
 
-            String sql = "WITH followed_entities AS (    SELECT follower_id AS entity_id    FROM user_follow     WHERE user_id = ?    UNION ALL    SELECT board_id AS entity_id     FROM board_follow     WHERE user_id = ?)   SELECT     p.post_id,      CASE         WHEN fe.entity_id IS NOT NULL THEN 1        ELSE 0    END AS is_followed   FROM     post p   LEFT JOIN     followed_entities fe   ON     p.user_id = fe.entity_id OR p.board_id = fe.entity_id   ORDER BY     is_followed DESC,    p.create_time DESC;";
+            String sql = "WITH followed_entities AS (    SELECT follower_id AS entity_id    FROM user_follow     WHERE user_id = ?    UNION ALL    SELECT board_id AS entity_id     FROM board_follow     WHERE user_id = ?)   SELECT     p.post_id,      CASE         WHEN fe.entity_id IS NOT NULL THEN 1        ELSE 0    END AS is_followed   FROM     post p   LEFT JOIN     followed_entities fe   ON     p.user_id = fe.entity_id OR p.board_id = fe.entity_id   ORDER BY   is_followed DESC    ;";
 
            rs = JDBC.find(con,sql,value);
 
