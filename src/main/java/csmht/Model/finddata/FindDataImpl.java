@@ -596,31 +596,41 @@ public class FindDataImpl extends UserBaseServlet implements FindDataService {
         try {
             con.setAutoCommit(false);
 
-            String[] main = {};
+            String[] main = {"post"};
             String[] hot = {};
 
 
             String[] key ={};
-            String[] value ={a+"",a+""};
+            String[] value ={};
 
-            String sql = "WITH followed_entities AS (    SELECT follower_id AS entity_id    FROM user_follow     WHERE user_id = ?    UNION ALL    SELECT board_id AS entity_id     FROM board_follow     WHERE user_id = ?)   SELECT     p.post_id,      CASE         WHEN fe.entity_id IS NOT NULL THEN 1        ELSE 0    END AS is_followed   FROM     post p   LEFT JOIN     followed_entities fe   ON     p.user_id = fe.entity_id OR p.board_id = fe.entity_id   ORDER BY   is_followed DESC    ;";
 
-           rs = JDBC.find(con,sql,value);
+
+
+            Set<String> user = JedisTool.FindFollowUser(a+"").keySet();
+            Set<String> board = JedisTool.FindFollowBoard(a+"").keySet();
 
            List<Integer> postID = new LinkedList<>();
+           List<Post> first = new LinkedList<>();
+           List<Post> last = new LinkedList<>();
+
+           rs = JDBC.find(con2,main,hot,key,value,New);
 
             while (rs.next()) {
-                if(!postID.contains(rs.getInt("post_id"))){
-                    postID.add(rs.getInt("post_id"));
-                    Post tow;
-                    tow = Find.FindPost(con2,"post_id",rs.getString("post_id"),"");
-                    if(!BaseString.sdf.parse(tow.getCreate_time()).after(new Date())) {
-                        post.add(tow);
-                    }
-                }
 
+                Post p ;
+                p = Find.FindPost(con,"post_id",rs.getString("post_id"),"");
+                if(BaseString.sdf.parse(rs.getString("create_time")).after(new Date())){
+                    continue;
+                }
+               if(user.contains(rs.getString("user_id")) || board.contains(rs.getString("board_id")) ) {
+                   first.add(p);
+               }else {
+                   last.add(p);
+               }
             }
 
+            post = first;
+            post.addAll(last);
 
             con.commit();
         } catch (Exception e) {

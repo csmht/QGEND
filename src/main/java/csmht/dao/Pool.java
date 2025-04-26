@@ -132,8 +132,10 @@ public class Pool {
                         Connection conn = waitConn.remove(0);
                         conn.close();
                     }
+                }
 
-
+                if(!waitConn.isEmpty()){
+                    notifyAll();
                 }
 
                 for(Connection conn : waitConn){
