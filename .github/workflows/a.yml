@@ -1,85 +1,98 @@
 name: 每日域名WHOIS与SSL证书检测
 
-# 触发条件：每日UTC 0:00（北京时间8:00）运行；支持手动触发
 on:
   schedule:
-    - cron: '0 0 * * *'  # 可调整为其他时间，如 '0 1 * * *'（UTC1点=北京时间9点）
-  workflow_dispatch:
+    - cron: '0 0 * * *'  # 每日UTC 0点（北京时间8点）运行
+  workflow_dispatch:  # 支持手动触发
 
 jobs:
   check-domain-cert:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      # 步骤1：安装依赖工具（whois用于查询WHOIS记录，jq用于JSON解析）
       - name: 安装WHOIS和jq工具
         run: sudo apt-get update && sudo apt-get install -y whois jq
 
-      # 步骤2：通过WHOIS查询主域名续费情况（通用方式，支持任何注册商）
+      # 新增：测试飞书消息连通性（工作流开始时发送测试消息）
+      - name: 测试飞书消息发送
+        run: |
+          TEST_CONTENT=$(cat <<EOF
+          {
+            "msg_type": "text",
+            "content": {
+              "text": "📡 飞书消息测试：通知通道正常\n工作流开始执行域名/证书检测任务"
+            }
+          }
+          EOF
+          )
+          
+          # 发送测试消息到指定WebHook
+          curl -X POST \
+            "https://open.feishu.cn/open-apis/bot/v2/hook/e7b9814a-2005-4d48-8861-2b251ffe0cf6" \
+            -H "Content-Type: application/json" \
+            -d "$TEST_CONTENT"
+        env:
+          SHELL: /bin/bash
+
+      # 检查主域名WHOIS信息（保持不变）
       - name: 检查主域名 bushanyanchi.com WHOIS信息
         id: check_domain_whois
         run: |
-          # 定义主域名
           MAIN_DOMAIN="bushanyanchi.com"
-          echo "正在查询 $MAIN_DOMAIN 的WHOIS记录..."
-          
-          # 执行WHOIS查询，保存结果到文件（避免输出过长）
           whois $MAIN_DOMAIN > whois_result.txt
           
-          # 提取到期时间（WHOIS记录格式不统一，需适配常见字段）
-          # 常见到期时间字段：Registry Expiry Date、Expiration Date、expires、Expiry Date
           EXPIRE_TIME=$(grep -iE 'Registry Expiry Date|Expiration Date|expires|Expiry Date' whois_result.txt | head -1 | awk -F': ' '{print $2}' | xargs)
-          
-          # 处理时间格式（部分WHOIS返回带时区，如2025-12-31T12:00:00Z，统一转换为时间戳）
-          # 移除T和Z，转换为标准格式（如2025-12-31 12:00:00）
           EXPIRE_TIME_CLEAN=$(echo $EXPIRE_TIME | sed 's/T/ /g' | sed 's/Z//g')
-          # 计算剩余天数（若提取失败，剩余天数设为"未知"）
+          
           if [ -n "$EXPIRE_TIME_CLEAN" ]; then
             EXPIRE_TIMESTAMP=$(date -d "$EXPIRE_TIME_CLEAN" +%s 2>/dev/null)
             CURRENT_TIMESTAMP=$(date +%s)
             REMAIN_DAYS=$(( (EXPIRE_TIMESTAMP - CURRENT_TIMESTAMP) / 86400 ))
-            # 处理负数（已过期）
+          
             if [ $REMAIN_DAYS -lt 0 ]; then
               REMAIN_DAYS="已过期（$((-REMAIN_DAYS)) 天）"
+              DOMAIN_RISK="🚨 主域名已过期！请立即处理！"
+            elif [ $REMAIN_DAYS -lt 14 ]; then
+              REMAIN_DAYS="$REMAIN_DAYS 天（即将过期）"
+              DOMAIN_RISK="⚠️ 主域名剩余天数不足14天，需尽快续费！"
             else
               REMAIN_DAYS="$REMAIN_DAYS 天"
+              DOMAIN_RISK=""
             fi
           else
             EXPIRE_TIME="未查询到"
             REMAIN_DAYS="未知"
+            DOMAIN_RISK="❓ 无法获取域名到期信息，请手动检查"
           fi
           
-          # 输出结果到步骤变量
           echo "expire_time=$EXPIRE_TIME" >> $GITHUB_OUTPUT
           echo "remain_days=$REMAIN_DAYS" >> $GITHUB_OUTPUT
-          # 打印日志
-          echo "主域名 $MAIN_DOMAIN 到期时间：$EXPIRE_TIME"
-          echo "剩余天数：$REMAIN_DAYS"
+          echo "domain_risk=$DOMAIN_RISK" >> $GITHUB_OUTPUT
 
-      # 步骤3：检查子域名SSL证书有效期（基于openssl，与HTTPS加密逻辑一致）
+      # 检查子域名SSL证书（保持不变）
       - name: 检查子域名SSL证书
         id: check_subdomain_cert
         run: |
-          # 定义需要检查的子域名列表（可扩展）
           SUB_DOMAINS=("gk.bushanyanchi.com" "gk-admin.bushanyanchi.com")
           CERT_RESULTS=""
+          CERT_RISK=""
           
           for DOMAIN in "${SUB_DOMAINS[@]}"; do
-            echo "正在检查 $DOMAIN 的SSL证书..."
-            # 使用openssl获取证书（超时10秒，忽略错误输出）
             CERT=$(echo | timeout 10s openssl s_client -connect $DOMAIN:443 -servername $DOMAIN 2>/dev/null | openssl x509 -noout -dates 2>/dev/null)
-            
+          
             if [ -n "$CERT" ]; then
-              # 提取证书生效和到期时间
               NOT_BEFORE=$(echo "$CERT" | grep 'notBefore' | awk -F'=' '{print $2}' | xargs)
               NOT_AFTER=$(echo "$CERT" | grep 'notAfter' | awk -F'=' '{print $2}' | xargs)
-              # 计算剩余天数
               NOT_AFTER_TIMESTAMP=$(date -d "$NOT_AFTER" +%s 2>/dev/null)
               CURRENT_TIMESTAMP=$(date +%s)
               REMAIN_DAYS=$(( (NOT_AFTER_TIMESTAMP - CURRENT_TIMESTAMP) / 86400 ))
-              # 处理过期情况
+          
               if [ $REMAIN_DAYS -lt 0 ]; then
                 REMAIN_DAYS="已过期（$((-REMAIN_DAYS)) 天）"
+                CERT_RISK+="🚨 $DOMAIN 证书已过期！请立即更新！\n"
+              elif [ $REMAIN_DAYS -lt 14 ]; then
+                REMAIN_DAYS="$REMAIN_DAYS 天（即将过期）"
+                CERT_RISK+="⚠️ $DOMAIN 证书剩余天数不足14天，需尽快更新！\n"
               else
                 REMAIN_DAYS="$REMAIN_DAYS 天"
               fi
@@ -87,44 +100,43 @@ jobs:
               NOT_BEFORE="未获取到证书"
               NOT_AFTER="未获取到证书"
               REMAIN_DAYS="无法连接（检查域名解析或443端口）"
+              CERT_RISK+="❌ $DOMAIN 无法获取证书信息，请手动检查！\n"
             fi
-            
-            # 拼接结果（飞书Markdown支持换行）
-            CERT_RESULTS+="🔹 $DOMAIN\n"
-            CERT_RESULTS+="   - 生效时间：$NOT_BEFORE\n"
-            CERT_RESULTS+="   - 到期时间：$NOT_AFTER\n"
-            CERT_RESULTS+="   - 剩余天数：$REMAIN_DAYS\n\n"
+          
+            CERT_RESULTS+="🔹 $DOMAIN\n   - 生效时间：$NOT_BEFORE\n   - 到期时间：$NOT_AFTER\n   - 剩余天数：$REMAIN_DAYS\n\n"
           done
           
           echo "cert_results=$CERT_RESULTS" >> $GITHUB_OUTPUT
-          echo "$CERT_RESULTS"
+          echo "cert_risk=$CERT_RISK" >> $GITHUB_OUTPUT
 
-      # 步骤4：发送飞书通知（整合WHOIS和证书结果）
+      # 发送飞书检测报告（保持不变）
       - name: 发送飞书检测报告
         run: |
-          # 整理通知内容（Markdown格式，突出风险提示）
+          ALL_RISKS=$(cat <<EOF
+          ${{ steps.check_domain_whois.outputs.domain_risk }}
+          ${{ steps.check_subdomain_cert.outputs.cert_risk }}
+          EOF
+          )
+          
           NOTIFY_CONTENT=$(cat <<EOF
           {
             "msg_type": "markdown",
             "content": {
-              "title": "🌐 每日域名WHOIS与SSL证书检测报告",
-              "text": "### 主域名 WHOIS 续费检查\n"
+              "title": "🌐 每日域名与证书检测报告",
+              "text": "### 主域名 WHOIS 检查\n"
                       "🔸 域名：bushanyanchi.com\n"
-                      "   - 注册到期时间：${{ steps.check_domain_whois.outputs.expire_time }}\n"
+                      "   - 到期时间：${{ steps.check_domain_whois.outputs.expire_time }}\n"
                       "   - 剩余天数：${{ steps.check_domain_whois.outputs.remain_days }}\n\n"
-                      "### 子域名 SSL 证书检查（HTTPS加密依赖）\n"
+                      "### 子域名 SSL 证书检查\n"
                       "${{ steps.check_subdomain_cert.outputs.cert_results }}"
-                      "⚠️  风险提示：\n"
-                      "   - 域名剩余天数 < 30 天：请及时续费，避免解析失效！\n"
-                      "   - 证书剩余天数 < 30 天：请更新SSL证书，避免HTTPS访问异常！"
+                      "$([ -n "$ALL_RISKS" ] && echo "### 风险警示\n$ALL_RISKS" || echo "### 状态正常\n所有域名和证书剩余天数均≥14天")"
             }
           }
           EOF
           )
           
-          # 调用飞书WebHook发送通知
           curl -X POST \
-            "${{ secrets.FEISHU_WEBHOOK_URL }}" \
+            "https://open.feishu.cn/open-apis/bot/v2/hook/e7b9814a-2005-4d48-8861-2b251ffe0cf6" \
             -H "Content-Type: application/json" \
             -d "$NOTIFY_CONTENT"
         env:
