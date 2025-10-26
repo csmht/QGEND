@@ -13,27 +13,6 @@ jobs:
       - name: 安装WHOIS和jq工具
         run: sudo apt-get update && sudo apt-get install -y whois jq
 
-      # 新增：测试飞书消息连通性（工作流开始时发送测试消息）
-      - name: 测试飞书消息发送
-        run: |
-          TEST_CONTENT=$(cat <<EOF
-          {
-            "msg_type": "text",
-            "content": {
-              "text": "📡 飞书消息测试：通知通道正常\n工作流开始执行域名/证书检测任务"
-            }
-          }
-          EOF
-          )
-          
-          # 发送测试消息到指定WebHook
-          curl -X POST \
-            "https://open.feishu.cn/open-apis/bot/v2/hook/e7b9814a-2005-4d48-8861-2b251ffe0cf6" \
-            -H "Content-Type: application/json" \
-            -d "$TEST_CONTENT"
-        env:
-          SHELL: /bin/bash
-
       # 检查主域名WHOIS信息（保持不变）
       - name: 检查主域名 bushanyanchi.com WHOIS信息
         id: check_domain_whois
