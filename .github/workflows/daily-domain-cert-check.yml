@@ -102,22 +102,29 @@ jobs:
       - name: 发送飞书检测报告
         if: contains(steps.check_domain_whois.outputs.domain_risk, '🚨') || contains(steps.check_subdomain_cert.outputs.cert_risk, '🚨') || contains(steps.check_domain_whois.outputs.domain_risk, '⚠️') || contains(steps.check_subdomain_cert.outputs.cert_risk, '⚠️')
         run: |
-          # 生成通知内容
+          # 生成简洁的文本通知内容
+          ALERT_MESSAGE="域名过期提醒：
+"
+
+          # 添加域名风险信息
+          if [ -n "${{ steps.check_domain_whois.outputs.domain_risk }}" ]; then
+            ALERT_MESSAGE+="${{ steps.check_domain_whois.outputs.domain_risk }}
+"
+          fi
+
+          # 添加证书风险信息
+          if [ -n "${{ steps.check_subdomain_cert.outputs.cert_risk }}" ]; then
+            # 移除最后的换行符，避免多余空行
+            CERT_RISK_CLEAN=$(echo "${{ steps.check_subdomain_cert.outputs.cert_risk }}" | sed 's/$//' | sed 's/\\n$//')
+            ALERT_MESSAGE+="$CERT_RISK_CLEAN
+"
+          fi
+
           NOTIFY_CONTENT=$(cat <<EOF
           {
-            "msg_type": "markdown",
+            "msg_type": "text",
             "content": {
-              "title": "🌐 每日域名与证书检测报告",
-              "text": "### 主域名 WHOIS 检查
-🔸 域名：bushanyanchi.com
-   - 到期时间：${{ steps.check_domain_whois.outputs.expire_time }}
-   - 剩余天数：${{ steps.check_domain_whois.outputs.remain_days }}
-
-### 子域名 SSL 证书检查
-${{ steps.check_subdomain_cert.outputs.cert_results }}
-### 风险警示
-${{ steps.check_domain_whois.outputs.domain_risk }}
-${{ steps.check_subdomain_cert.outputs.cert_risk }}"
+                "text": "$ALERT_MESSAGE"
             }
           }
           EOF
@@ -126,7 +133,7 @@ ${{ steps.check_subdomain_cert.outputs.cert_risk }}"
           # 打印即将发送的消息内容
           echo "📤 即将发送飞书通知..."
           echo "==================================="
-          echo "通知标题：🌐 每日域名与证书检测报告"
+          echo "通知类型：text（纯文本）"
           echo "发送时间：$(date '+%Y-%m-%d %H:%M:%S UTC')"
           echo "检测到风险项目："
           if [ -n "${{ steps.check_domain_whois.outputs.domain_risk }}" ]; then
@@ -136,7 +143,10 @@ ${{ steps.check_subdomain_cert.outputs.cert_risk }}"
             echo "  - 证书风险：${{ steps.check_subdomain_cert.outputs.cert_risk }}"
           fi
           echo "==================================="
-          echo "完整消息内容："
+          echo "发送消息内容："
+          echo "$ALERT_MESSAGE"
+          echo "==================================="
+          echo "完整JSON格式："
           echo "$NOTIFY_CONTENT" | jq '.' 2>/dev/null || echo "$NOTIFY_CONTENT"
           echo "==================================="
 
