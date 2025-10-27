@@ -166,21 +166,18 @@ jobs:
         if: contains(steps.check_domain_whois.outputs.domain_risk, '🚨') || contains(steps.check_subdomain_cert.outputs.cert_risk, '🚨') || contains(steps.check_domain_whois.outputs.domain_risk, '⚠️') || contains(steps.check_subdomain_cert.outputs.cert_risk, '⚠️')
         run: |
           # 生成简洁的文本通知内容
-          ALERT_MESSAGE="域名过期提醒：
-"
+          ALERT_MESSAGE="域名过期提醒：\n"
 
           # 添加域名风险信息
           if [ -n "${{ steps.check_domain_whois.outputs.domain_risk }}" ]; then
-            ALERT_MESSAGE+="${{ steps.check_domain_whois.outputs.domain_risk }}
-"
+            ALERT_MESSAGE+="${{ steps.check_domain_whois.outputs.domain_risk }}\n"
           fi
 
           # 添加证书风险信息
           if [ -n "${{ steps.check_subdomain_cert.outputs.cert_risk }}" ]; then
             # 移除最后的换行符，避免多余空行
             CERT_RISK_CLEAN=$(echo "${{ steps.check_subdomain_cert.outputs.cert_risk }}" | sed 's/$//' | tr -d '\n')
-            ALERT_MESSAGE+="$CERT_RISK_CLEAN
-"
+            ALERT_MESSAGE+="$CERT_RISK_CLEAN\n"
           fi
 
           NOTIFY_CONTENT=$(cat <<EOF
