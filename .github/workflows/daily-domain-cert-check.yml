@@ -9,11 +9,13 @@ jobs:
   check-domain-cert:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      WARNING_DAYS: 60  # 全局警告阈值（这里统一修改，控制所有警告线）
     steps:
       - name: 安装WHOIS和jq工具
         run: sudo apt-get update && sudo apt-get install -y whois jq
 
-      # 检查主域名WHOIS信息（保持不变）
+      # 检查主域名WHOIS信息（引用全局变量）
       - name: 检查主域名 bushanyanchi.com WHOIS信息
         id: check_domain_whois
         run: |
@@ -31,9 +33,9 @@ jobs:
             if [ $REMAIN_DAYS -lt 0 ]; then
               REMAIN_DAYS="已过期（$((-REMAIN_DAYS)) 天）"
               DOMAIN_RISK="🚨 主域名已过期！请立即处理！"
-            elif [ $REMAIN_DAYS -lt 14 ]; then
+            elif [ $REMAIN_DAYS -lt $WARNING_DAYS ]; then  # 引用全局变量
               REMAIN_DAYS="$REMAIN_DAYS 天（即将过期）"
-              DOMAIN_RISK="⚠️ 主域名剩余天数不足14天，需尽快续费！"
+              DOMAIN_RISK="⚠️ 主域名剩余天数不足$WARNING_DAYS天，需尽快续费！"  # 引用全局变量
             else
               REMAIN_DAYS="$REMAIN_DAYS 天"
               DOMAIN_RISK=""
@@ -48,7 +50,7 @@ jobs:
           echo "remain_days=$REMAIN_DAYS" >> $GITHUB_OUTPUT
           echo "domain_risk=$DOMAIN_RISK" >> $GITHUB_OUTPUT
 
-      # 检查子域名SSL证书（保持不变）
+      # 检查子域名SSL证书（引用全局变量）
       - name: 检查子域名SSL证书
         id: check_subdomain_cert
         run: |
@@ -69,9 +71,9 @@ jobs:
               if [ $REMAIN_DAYS -lt 0 ]; then
                 REMAIN_DAYS="已过期（$((-REMAIN_DAYS)) 天）"
                 CERT_RISK+="🚨 $DOMAIN 证书已过期！请立即更新！\n"
-              elif [ $REMAIN_DAYS -lt 14 ]; then
+              elif [ $REMAIN_DAYS -lt $WARNING_DAYS ]; then  # 引用全局变量
                 REMAIN_DAYS="$REMAIN_DAYS 天（即将过期）"
-                CERT_RISK+="⚠️ $DOMAIN 证书剩余天数不足14天，需尽快更新！\n"
+                CERT_RISK+="⚠️ $DOMAIN 证书剩余天数不足$WARNING_DAYS天，需尽快更新！\n"  # 引用全局变量
               else
                 REMAIN_DAYS="$REMAIN_DAYS 天"
               fi
@@ -88,7 +90,7 @@ jobs:
           echo "cert_results=$CERT_RESULTS" >> $GITHUB_OUTPUT
           echo "cert_risk=$CERT_RISK" >> $GITHUB_OUTPUT
 
-      # 发送飞书检测报告（保持不变）
+      # 发送飞书检测报告（引用全局变量）
       - name: 发送飞书检测报告
         run: |
           ALL_RISKS=$(cat <<EOF
@@ -108,7 +110,7 @@ jobs:
                       "   - 剩余天数：${{ steps.check_domain_whois.outputs.remain_days }}\n\n"
                       "### 子域名 SSL 证书检查\n"
                       "${{ steps.check_subdomain_cert.outputs.cert_results }}"
-                      "$([ -n "$ALL_RISKS" ] && echo "### 风险警示\n$ALL_RISKS" || echo "### 状态正常\n所有域名和证书剩余天数均≥14天")"
+                      "$([ -n "$ALL_RISKS" ] && echo "### 风险警示\n$ALL_RISKS" || echo "### 状态正常\n所有域名和证书剩余天数均≥$WARNING_DAYS天")"  # 引用全局变量
             }
           }
           EOF
