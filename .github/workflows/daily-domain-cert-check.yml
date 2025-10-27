@@ -175,16 +175,21 @@ jobs:
           # 生成简洁的文本通知内容
           ALERT_MESSAGE="域名过期提醒：\n"
 
-          # 添加域名风险信息
+          # 添加域名风险信息和剩余天数
           if [ -n "${{ steps.check_domain_whois.outputs.domain_risk }}" ]; then
-            ALERT_MESSAGE+="${{ steps.check_domain_whois.outputs.domain_risk }}\n"
+            ALERT_MESSAGE+="📍 域名信息：\n"
+            ALERT_MESSAGE+="  - 状态：${{ steps.check_domain_whois.outputs.domain_risk }}\n"
+            ALERT_MESSAGE+="  - 剩余天数：${{ steps.check_domain_whois.outputs.remain_days }}\n"
+            ALERT_MESSAGE+="  - 到期时间：${{ steps.check_domain_whois.outputs.expire_time }}\n\n"
           fi
 
           # 添加证书风险信息
           if [ -n "${{ steps.check_subdomain_cert.outputs.cert_risk }}" ]; then
+            ALERT_MESSAGE+="🔒 SSL证书信息：\n"
             # 移除最后的换行符，避免多余空行
             CERT_RISK_CLEAN=$(echo "${{ steps.check_subdomain_cert.outputs.cert_risk }}" | sed 's/$//' | tr -d '\n')
-            ALERT_MESSAGE+="$CERT_RISK_CLEAN\n"
+            ALERT_MESSAGE+="  - $CERT_RISK_CLEAN\n"
+            ALERT_MESSAGE+="\n📋 详细证书状态：\n${{ steps.check_subdomain_cert.outputs.cert_results }}\n"
           fi
 
           NOTIFY_CONTENT=$(cat <<EOF
