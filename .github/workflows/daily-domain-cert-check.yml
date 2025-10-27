@@ -53,7 +53,8 @@ jobs:
             EXPIRE_TIME=""
 
             for FIELD in "${EXPIRE_FIELDS[@]}"; do
-              EXPIRE_TIME=$(grep -i "^$FIELD:" whois_result.txt | head -1 | awk -F': ' '{print $2}' | xargs)
+              # 使用更灵活的匹配方式，支持前后空格和不同分隔符
+              EXPIRE_TIME=$(grep -i "^[[:space:]]*$FIELD[[:space:]]*:" whois_result.txt | head -1 | awk -F': ' '{print $2}' | xargs)
               if [ -n "$EXPIRE_TIME" ]; then
                 echo "✅ 找到到期时间字段：$FIELD"
                 break
@@ -202,7 +203,7 @@ jobs:
 
           # 发送飞书通知并处理错误
           if curl -X POST \
-            "https://open.feishu.cn/open-apis/bot/v2/hook/e7b9814a-2005-4d48-8861-2b251ffe0cf6" \
+            "https://open.feishu.cn/open-apis/bot/v2/hook/93854238-e45b-431e-a309-ec36daf581f6" \
             -H "Content-Type: application/json" \
             -d "$NOTIFY_CONTENT" \
             --max-time 30 \
