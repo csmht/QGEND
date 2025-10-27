@@ -163,7 +163,7 @@ jobs:
 
       # 发送飞书检测报告（仅在有风险时发送）
       - name: 发送飞书检测报告
-        if: contains(steps.check_domain_whois.outputs.domain_risk, '🚨') || contains(steps.check_subdomain_cert.outputs.cert_risk, '🚨') || contains(steps.check_domain_whois.outputs.domain_risk, '⚠️') || contains(steps.check_subdomain_cert.outputs.cert_risk, '⚠️')
+        if: contains(steps.check_domain_whois.outputs.domain_risk, '过期') || contains(steps.check_domain_whois.outputs.domain_risk, '不足') || contains(steps.check_subdomain_cert.outputs.cert_risk, '过期') || contains(steps.check_subdomain_cert.outputs.cert_risk, '不足') || contains(steps.check_domain_whois.outputs.domain_risk, '失败') || contains(steps.check_subdomain_cert.outputs.cert_risk, '无法获取')
         run: |
           # 生成简洁的文本通知内容
           ALERT_MESSAGE="域名过期提醒：\n"
@@ -190,37 +190,29 @@ jobs:
           EOF
           )
 
-          # 打印即将发送的消息内容
-          echo "📤 即将发送飞书通知..."
-          echo "==================================="
-          echo "通知类型：text（纯文本）"
+          echo "📤 发送飞书风险通知..."
           echo "发送时间：$(date '+%Y-%m-%d %H:%M:%S UTC')"
-          echo "检测到风险项目："
-          if [ -n "${{ steps.check_domain_whois.outputs.domain_risk }}" ]; then
-            echo "  - 域名风险：${{ steps.check_domain_whois.outputs.domain_risk }}"
-          fi
-          if [ -n "${{ steps.check_subdomain_cert.outputs.cert_risk }}" ]; then
-            echo "  - 证书风险：${{ steps.check_subdomain_cert.outputs.cert_risk }}"
-          fi
-          echo "==================================="
-          echo "发送消息内容："
-          echo "$ALERT_MESSAGE"
-          echo "==================================="
-          echo "完整JSON格式："
-          echo "$NOTIFY_CONTENT" | jq '.' 2>/dev/null || echo "$NOTIFY_CONTENT"
-          echo "==================================="
+          echo "通知内容：$ALERT_MESSAGE"
 
-          # 发送飞书通知
-          curl -X POST \
+          # 发送飞书通知并处理错误
+          if curl -X POST \
             "${{ secrets.FEISHU_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d "$NOTIFY_CONTENT"
-
-          echo "✅ 飞书通知发送完成"
+            -d "$NOTIFY_CONTENT" \
+            --max-time 30 \
+            --silent \
+            --show-error \
+            --fail-with-body; then
+            echo "✅ 飞书通知发送成功"
+          else
+            echo "❌ 飞书通知发送失败"
+            echo "请检查 FEISHU_WEBHOOK_URL 密钥配置是否正确"
+            exit 1
+          fi
 
       # 记录无风险状态
       - name: 记录无风险状态
-        if: !contains(steps.check_domain_whois.outputs.domain_risk, '🚨') && !contains(steps.check_domain_whois.outputs.domain_risk, '⚠️') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '🚨') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '⚠️')
+        if: !contains(steps.check_domain_whois.outputs.domain_risk, '过期') && !contains(steps.check_domain_whois.outputs.domain_risk, '不足') && !contains(steps.check_domain_whois.outputs.domain_risk, '失败') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '过期') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '不足') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '无法获取')
         run: |
           echo "✅ 所有检测项目正常，剩余天数均≥60天"
           echo "🔹 主域名剩余天数：${{ steps.check_domain_whois.outputs.remain_days }}"
