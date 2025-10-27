@@ -141,12 +141,10 @@ jobs:
           
               if [ $REMAIN_DAYS -lt 0 ]; then
                 REMAIN_DAYS="已过期（$((-REMAIN_DAYS)) 天）"
-                CERT_RISK+="🚨 $DOMAIN 证书已过期！请立即更新！
-"
+                CERT_RISK+="🚨 $DOMAIN 证书已过期！请立即更新！\n"
               elif [ $REMAIN_DAYS -lt $WARNING_DAYS ]; then  # 引用全局变量
                 REMAIN_DAYS="$REMAIN_DAYS 天（即将过期）"
-                CERT_RISK+="⚠️ $DOMAIN 证书剩余天数不足$WARNING_DAYS天，需尽快更新！
-"  # 引用全局变量
+                CERT_RISK+="⚠️ $DOMAIN 证书剩余天数不足$WARNING_DAYS天，需尽快更新！\n"  # 引用全局变量
               else
                 REMAIN_DAYS="$REMAIN_DAYS 天"
               fi
@@ -154,16 +152,10 @@ jobs:
               NOT_BEFORE="未获取到证书"
               NOT_AFTER="未获取到证书"
               REMAIN_DAYS="无法连接（检查域名解析或443端口）"
-              CERT_RISK+="❌ $DOMAIN 无法获取证书信息，请手动检查！
-"
+              CERT_RISK+="❌ $DOMAIN 无法获取证书信息，请手动检查！\n"
             fi
 
-            CERT_RESULTS+="🔹 $DOMAIN
-   - 生效时间：$NOT_BEFORE
-   - 到期时间：$NOT_AFTER
-   - 剩余天数：$REMAIN_DAYS
-
-"
+            CERT_RESULTS+="🔹 $DOMAIN\n   - 生效时间：$NOT_BEFORE\n   - 到期时间：$NOT_AFTER\n   - 剩余天数：$REMAIN_DAYS\n\n"
           done
           
           echo "cert_results=$CERT_RESULTS" >> $GITHUB_OUTPUT
