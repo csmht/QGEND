@@ -163,7 +163,13 @@ jobs:
 
       # 发送飞书检测报告（仅在有风险时发送）
       - name: 发送飞书检测报告
-        if: contains(steps.check_domain_whois.outputs.domain_risk, '过期') || contains(steps.check_domain_whois.outputs.domain_risk, '不足') || contains(steps.check_subdomain_cert.outputs.cert_risk, '过期') || contains(steps.check_subdomain_cert.outputs.cert_risk, '不足') || contains(steps.check_domain_whois.outputs.domain_risk, '失败') || contains(steps.check_subdomain_cert.outputs.cert_risk, '无法获取')
+        if: |
+          contains(steps.check_domain_whois.outputs.domain_risk, '过期') ||
+          contains(steps.check_domain_whois.outputs.domain_risk, '不足') ||
+          contains(steps.check_domain_whois.outputs.domain_risk, '失败') ||
+          contains(steps.check_subdomain_cert.outputs.cert_risk, '过期') ||
+          contains(steps.check_subdomain_cert.outputs.cert_risk, '不足') ||
+          contains(steps.check_subdomain_cert.outputs.cert_risk, '无法获取')
         run: |
           # 生成简洁的文本通知内容
           ALERT_MESSAGE="域名过期提醒：\n"
@@ -211,7 +217,13 @@ jobs:
           fi
 
       - name: 记录无风险状态
-        if: !contains(steps.check_domain_whois.outputs.domain_risk, '过期') && !contains(steps.check_domain_whois.outputs.domain_risk, '不足') && !contains(steps.check_domain_whois.outputs.domain_risk, '失败') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '过期') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '不足') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '无法获取')
+        if: |
+          !contains(steps.check_domain_whois.outputs.domain_risk, '过期') &&
+          !contains(steps.check_domain_whois.outputs.domain_risk, '不足') &&
+          !contains(steps.check_domain_whois.outputs.domain_risk, '失败') &&
+          !contains(steps.check_subdomain_cert.outputs.cert_risk, '过期') &&
+          !contains(steps.check_subdomain_cert.outputs.cert_risk, '不足') &&
+          !contains(steps.check_subdomain_cert.outputs.cert_risk, '无法获取')
         run: |
           echo "✅ 所有检测项目正常，剩余天数均≥60天"
           echo "🔹 主域名剩余天数：${{ steps.check_domain_whois.outputs.remain_days }}"
