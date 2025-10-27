@@ -90,15 +90,11 @@ jobs:
           echo "cert_results=$CERT_RESULTS" >> $GITHUB_OUTPUT
           echo "cert_risk=$CERT_RISK" >> $GITHUB_OUTPUT
 
-      # 发送飞书检测报告（引用全局变量）
+      # 发送飞书检测报告（仅在有风险时发送）
       - name: 发送飞书检测报告
+        if: contains(steps.check_domain_whois.outputs.domain_risk, '🚨') || contains(steps.check_subdomain_cert.outputs.cert_risk, '🚨') || contains(steps.check_domain_whois.outputs.domain_risk, '⚠️') || contains(steps.check_subdomain_cert.outputs.cert_risk, '⚠️')
         run: |
-          ALL_RISKS=$(cat <<EOF
-          ${{ steps.check_domain_whois.outputs.domain_risk }}
-          ${{ steps.check_subdomain_cert.outputs.cert_risk }}
-          EOF
-          )
-          
+          # 生成通知内容
           NOTIFY_CONTENT=$(cat <<EOF
           {
             "msg_type": "markdown",
@@ -110,15 +106,44 @@ jobs:
                       "   - 剩余天数：${{ steps.check_domain_whois.outputs.remain_days }}\n\n"
                       "### 子域名 SSL 证书检查\n"
                       "${{ steps.check_subdomain_cert.outputs.cert_results }}"
-                      "$([ -n "$ALL_RISKS" ] && echo "### 风险警示\n$ALL_RISKS" || echo "### 状态正常\n所有域名和证书剩余天数均≥$WARNING_DAYS天")"  # 引用全局变量
+                      "### 风险警示\n"
+                      "${{ steps.check_domain_whois.outputs.domain_risk }}\n"
+                      "${{ steps.check_subdomain_cert.outputs.cert_risk }}"
             }
           }
           EOF
           )
-          
+
+          # 打印即将发送的消息内容
+          echo "📤 即将发送飞书通知..."
+          echo "==================================="
+          echo "通知标题：🌐 每日域名与证书检测报告"
+          echo "发送时间：$(date '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "检测到风险项目："
+          if [ -n "${{ steps.check_domain_whois.outputs.domain_risk }}" ]; then
+            echo "  - 域名风险：${{ steps.check_domain_whois.outputs.domain_risk }}"
+          fi
+          if [ -n "${{ steps.check_subdomain_cert.outputs.cert_risk }}" ]; then
+            echo "  - 证书风险：${{ steps.check_subdomain_cert.outputs.cert_risk }}"
+          fi
+          echo "==================================="
+          echo "完整消息内容："
+          echo "$NOTIFY_CONTENT" | jq '.' 2>/dev/null || echo "$NOTIFY_CONTENT"
+          echo "==================================="
+
+          # 发送飞书通知
           curl -X POST \
             "https://open.feishu.cn/open-apis/bot/v2/hook/e7b9814a-2005-4d48-8861-2b251ffe0cf6" \
             -H "Content-Type: application/json" \
             -d "$NOTIFY_CONTENT"
-        env:
-          SHELL: /bin/bash
+
+          echo "✅ 飞书通知发送完成"
+
+      # 记录无风险状态
+      - name: 记录无风险状态
+        if: ${{ !contains(steps.check_domain_whois.outputs.domain_risk, '🚨') && !contains(steps.check_domain_whois.outputs.domain_risk, '⚠️') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '🚨') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '⚠️') }}
+        run: |
+          echo "✅ 所有检测项目正常，剩余天数均≥60天"
+          echo "🔹 主域名剩余天数：${{ steps.check_domain_whois.outputs.remain_days }}"
+          echo "🔹 SSL证书状态正常，无需发送通知"
+          echo "📅 检测时间：$(date '+%Y-%m-%d %H:%M:%S UTC')"
