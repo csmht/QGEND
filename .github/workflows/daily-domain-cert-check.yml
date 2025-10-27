@@ -70,10 +70,12 @@ jobs:
           
               if [ $REMAIN_DAYS -lt 0 ]; then
                 REMAIN_DAYS="已过期（$((-REMAIN_DAYS)) 天）"
-                CERT_RISK+="🚨 $DOMAIN 证书已过期！请立即更新！\n"
+                CERT_RISK+="🚨 $DOMAIN 证书已过期！请立即更新！
+"
               elif [ $REMAIN_DAYS -lt $WARNING_DAYS ]; then  # 引用全局变量
                 REMAIN_DAYS="$REMAIN_DAYS 天（即将过期）"
-                CERT_RISK+="⚠️ $DOMAIN 证书剩余天数不足$WARNING_DAYS天，需尽快更新！\n"  # 引用全局变量
+                CERT_RISK+="⚠️ $DOMAIN 证书剩余天数不足$WARNING_DAYS天，需尽快更新！
+"  # 引用全局变量
               else
                 REMAIN_DAYS="$REMAIN_DAYS 天"
               fi
@@ -81,10 +83,16 @@ jobs:
               NOT_BEFORE="未获取到证书"
               NOT_AFTER="未获取到证书"
               REMAIN_DAYS="无法连接（检查域名解析或443端口）"
-              CERT_RISK+="❌ $DOMAIN 无法获取证书信息，请手动检查！\n"
+              CERT_RISK+="❌ $DOMAIN 无法获取证书信息，请手动检查！
+"
             fi
-          
-            CERT_RESULTS+="🔹 $DOMAIN\n   - 生效时间：$NOT_BEFORE\n   - 到期时间：$NOT_AFTER\n   - 剩余天数：$REMAIN_DAYS\n\n"
+
+            CERT_RESULTS+="🔹 $DOMAIN
+   - 生效时间：$NOT_BEFORE
+   - 到期时间：$NOT_AFTER
+   - 剩余天数：$REMAIN_DAYS
+
+"
           done
           
           echo "cert_results=$CERT_RESULTS" >> $GITHUB_OUTPUT
@@ -100,15 +108,16 @@ jobs:
             "msg_type": "markdown",
             "content": {
               "title": "🌐 每日域名与证书检测报告",
-              "text": "### 主域名 WHOIS 检查\n"
-                      "🔸 域名：bushanyanchi.com\n"
-                      "   - 到期时间：${{ steps.check_domain_whois.outputs.expire_time }}\n"
-                      "   - 剩余天数：${{ steps.check_domain_whois.outputs.remain_days }}\n\n"
-                      "### 子域名 SSL 证书检查\n"
-                      "${{ steps.check_subdomain_cert.outputs.cert_results }}"
-                      "### 风险警示\n"
-                      "${{ steps.check_domain_whois.outputs.domain_risk }}\n"
-                      "${{ steps.check_subdomain_cert.outputs.cert_risk }}"
+              "text": "### 主域名 WHOIS 检查
+🔸 域名：bushanyanchi.com
+   - 到期时间：${{ steps.check_domain_whois.outputs.expire_time }}
+   - 剩余天数：${{ steps.check_domain_whois.outputs.remain_days }}
+
+### 子域名 SSL 证书检查
+${{ steps.check_subdomain_cert.outputs.cert_results }}
+### 风险警示
+${{ steps.check_domain_whois.outputs.domain_risk }}
+${{ steps.check_subdomain_cert.outputs.cert_risk }}"
             }
           }
           EOF
