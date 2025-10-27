@@ -2,7 +2,7 @@ name: 每日域名WHOIS与SSL证书检测
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 每日UTC 0点（北京时间8点）运行
+    - cron: '0 2 * * *'  # 每日UTC 0点（北京时间8点）运行
   workflow_dispatch:  # 支持手动触发
 
 jobs:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      WARNING_DAYS: 60  # 全局警告阈值（这里统一修改，控制所有警告线）
+      WARNING_DAYS: 30  # 全局警告阈值（这里统一修改，控制所有警告线）
     steps:
       - name: 安装WHOIS和jq工具
         run: sudo apt-get update && sudo apt-get install -y whois jq
