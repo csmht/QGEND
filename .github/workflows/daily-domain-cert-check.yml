@@ -229,7 +229,7 @@ jobs:
 
           echo "✅ 飞书通知发送完成"
 
-      # 记录无风���状态
+      # 记录无风险状态
       - name: 记录无风险状态
         if: !contains(steps.check_domain_whois.outputs.domain_risk, '🚨') && !contains(steps.check_domain_whois.outputs.domain_risk, '⚠️') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '🚨') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '⚠️')
         run: |
