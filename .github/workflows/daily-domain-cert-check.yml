@@ -210,7 +210,7 @@ jobs:
             exit 1
           fi
 
-      # 记录无风险状态
+
       - name: 记录无风险状态
         if: !contains(steps.check_domain_whois.outputs.domain_risk, '过期') && !contains(steps.check_domain_whois.outputs.domain_risk, '不足') && !contains(steps.check_domain_whois.outputs.domain_risk, '失败') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '过期') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '不足') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '无法获取')
         run: |
