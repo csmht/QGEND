@@ -8,44 +8,92 @@ on:
 jobs:
   check-domain-cert:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     env:
       WARNING_DAYS: 60  # 全局警告阈值（这里统一修改，控制所有警告线）
     steps:
       - name: 安装WHOIS和jq工具
         run: sudo apt-get update && sudo apt-get install -y whois jq
 
-      # 检查主域名WHOIS信息（引用全局变量）
+      # 检查主域名WHOIS信息（引用全局变量，增加重试机制）
       - name: 检查主域名 bushanyanchi.com WHOIS信息
         id: check_domain_whois
         run: |
           MAIN_DOMAIN="bushanyanchi.com"
-          whois $MAIN_DOMAIN > whois_result.txt
-          
-          EXPIRE_TIME=$(grep -iE 'Registry Expiry Date|Expiration Date|expires|Expiry Date' whois_result.txt | head -1 | awk -F': ' '{print $2}' | xargs)
-          EXPIRE_TIME_CLEAN=$(echo $EXPIRE_TIME | sed 's/T/ /g' | sed 's/Z//g')
-          
-          if [ -n "$EXPIRE_TIME_CLEAN" ]; then
-            EXPIRE_TIMESTAMP=$(date -d "$EXPIRE_TIME_CLEAN" +%s 2>/dev/null)
-            CURRENT_TIMESTAMP=$(date +%s)
-            REMAIN_DAYS=$(( (EXPIRE_TIMESTAMP - CURRENT_TIMESTAMP) / 86400 ))
-          
-            if [ $REMAIN_DAYS -lt 0 ]; then
-              REMAIN_DAYS="已过期（$((-REMAIN_DAYS)) 天）"
-              DOMAIN_RISK="🚨 主域名已过期！请立即处理！"
-            elif [ $REMAIN_DAYS -lt $WARNING_DAYS ]; then  # 引用全局变量
-              REMAIN_DAYS="$REMAIN_DAYS 天（即将过期）"
-              DOMAIN_RISK="⚠️ 主域名剩余天数不足$WARNING_DAYS天，需尽快续费！"  # 引用全局变量
+
+          # 重试机制（最多3次）
+          RETRY_COUNT=0
+          MAX_RETRIES=3
+          WHOIS_SUCCESS=false
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            echo "WHOIS查询尝试 $((RETRY_COUNT + 1))/$MAX_RETRIES..."
+            if whois $MAIN_DOMAIN > whois_result.txt 2>/dev/null; then
+              echo "✅ WHOIS查询成功"
+              WHOIS_SUCCESS=true
+              break
             else
-              REMAIN_DAYS="$REMAIN_DAYS 天"
-              DOMAIN_RISK=""
+              echo "❌ WHOIS查询失败"
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                echo "等待3秒后重试..."
+                sleep 3
+              fi
             fi
-          else
-            EXPIRE_TIME="未查询到"
+          done
+
+          if [ "$WHOIS_SUCCESS" = false ]; then
+            echo "❌ WHOIS查询失败，已达最大重试次数"
+            EXPIRE_TIME="查询失败"
             REMAIN_DAYS="未知"
-            DOMAIN_RISK="❓ 无法获取域名到期信息，请手动检查"
+            DOMAIN_RISK="❌ WHOIS查询失败，请检查网络连接"
+          else
+            # 支持更多字段格式
+            EXPIRE_FIELDS=("Registry Expiry Date" "Expiration Date" "expires" "Expiry Date" "paid-till" "registry expiry date")
+            EXPIRE_TIME=""
+
+            for FIELD in "${EXPIRE_FIELDS[@]}"; do
+              EXPIRE_TIME=$(grep -i "^$FIELD:" whois_result.txt | head -1 | awk -F': ' '{print $2}' | xargs)
+              if [ -n "$EXPIRE_TIME" ]; then
+                echo "✅ 找到到期时间字段：$FIELD"
+                break
+              fi
+            done
+
+            if [ -z "$EXPIRE_TIME" ]; then
+              echo "⚠️ 未能从WHOIS记录中提取到期时间"
+              echo "WHOIS记录内容："
+              cat whois_result.txt
+              EXPIRE_TIME="未提取到"
+              REMAIN_DAYS="未知"
+              DOMAIN_RISK="❓ 无法获取域名到期信息，请手动检查"
+            else
+              # 标准化时间格式
+              EXPIRE_TIME_CLEAN=$(echo $EXPIRE_TIME | sed 's/T/ /g' | sed 's/Z//g' | sed 's/\..*//g')
+
+              if EXPIRE_TIMESTAMP=$(date -d "$EXPIRE_TIME_CLEAN" +%s 2>/dev/null); then
+                CURRENT_TIMESTAMP=$(date +%s)
+                REMAIN_DAYS=$(( (EXPIRE_TIMESTAMP - CURRENT_TIMESTAMP) / 86400 ))
+
+                if [ $REMAIN_DAYS -lt 0 ]; then
+                  REMAIN_DAYS="已过期（$((-REMAIN_DAYS)) 天）"
+                  DOMAIN_RISK="🚨 主域名已过期！请立即处理！"
+                elif [ $REMAIN_DAYS -lt $WARNING_DAYS ]; then
+                  REMAIN_DAYS="$REMAIN_DAYS 天（即将过期）"
+                  DOMAIN_RISK="⚠️ 主域名剩余天数不足$WARNING_DAYS天，需尽快续费！"
+                else
+                  REMAIN_DAYS="$REMAIN_DAYS 天"
+                  DOMAIN_RISK=""
+                fi
+              else
+                echo "❌ 时间格式转换失败：$EXPIRE_TIME_CLEAN"
+                EXPIRE_TIME="$EXPIRE_TIME（格式异常）"
+                REMAIN_DAYS="解析失败"
+                DOMAIN_RISK="❌ 时间格式解析失败，请手动检查"
+              fi
+            fi
           fi
-          
+
           echo "expire_time=$EXPIRE_TIME" >> $GITHUB_OUTPUT
           echo "remain_days=$REMAIN_DAYS" >> $GITHUB_OUTPUT
           echo "domain_risk=$DOMAIN_RISK" >> $GITHUB_OUTPUT
@@ -59,9 +107,32 @@ jobs:
           CERT_RISK=""
           
           for DOMAIN in "${SUB_DOMAINS[@]}"; do
-            CERT=$(echo | timeout 10s openssl s_client -connect $DOMAIN:443 -servername $DOMAIN 2>/dev/null | openssl x509 -noout -dates 2>/dev/null)
-          
-            if [ -n "$CERT" ]; then
+            echo "检测域名：$DOMAIN"
+
+            # 重试机制（最多2次）
+            RETRY_COUNT=0
+            MAX_RETRIES=2
+            CERT_SUCCESS=false
+
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              echo "SSL证书检测尝试 $((RETRY_COUNT + 1))/$MAX_RETRIES..."
+              CERT=$(echo | timeout 15s openssl s_client -connect $DOMAIN:443 -servername $DOMAIN 2>/dev/null | openssl x509 -noout -dates 2>/dev/null)
+
+              if [ -n "$CERT" ]; then
+                echo "✅ SSL证书获取成功"
+                CERT_SUCCESS=true
+                break
+              else
+                echo "❌ SSL证书获取失败"
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                  echo "等待2秒后重试..."
+                  sleep 2
+                fi
+              fi
+            done
+
+            if [ "$CERT_SUCCESS" = true ]; then
               NOT_BEFORE=$(echo "$CERT" | grep 'notBefore' | awk -F'=' '{print $2}' | xargs)
               NOT_AFTER=$(echo "$CERT" | grep 'notAfter' | awk -F'=' '{print $2}' | xargs)
               NOT_AFTER_TIMESTAMP=$(date -d "$NOT_AFTER" +%s 2>/dev/null)
@@ -115,7 +186,7 @@ jobs:
           # 添加证书风险信息
           if [ -n "${{ steps.check_subdomain_cert.outputs.cert_risk }}" ]; then
             # 移除最后的换行符，避免多余空行
-            CERT_RISK_CLEAN=$(echo "${{ steps.check_subdomain_cert.outputs.cert_risk }}" | sed 's/$//' | sed 's/\\n$//')
+            CERT_RISK_CLEAN=$(echo "${{ steps.check_subdomain_cert.outputs.cert_risk }}" | sed 's/$//' | tr -d '\n')
             ALERT_MESSAGE+="$CERT_RISK_CLEAN
 "
           fi
@@ -152,15 +223,15 @@ jobs:
 
           # 发送飞书通知
           curl -X POST \
-            "https://open.feishu.cn/open-apis/bot/v2/hook/e7b9814a-2005-4d48-8861-2b251ffe0cf6" \
+            "${{ secrets.FEISHU_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
             -d "$NOTIFY_CONTENT"
 
           echo "✅ 飞书通知发送完成"
 
-      # 记录无风险状态
+      # 记录无风���状态
       - name: 记录无风险状态
-        if: ${{ !contains(steps.check_domain_whois.outputs.domain_risk, '🚨') && !contains(steps.check_domain_whois.outputs.domain_risk, '⚠️') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '🚨') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '⚠️') }}
+        if: !contains(steps.check_domain_whois.outputs.domain_risk, '🚨') && !contains(steps.check_domain_whois.outputs.domain_risk, '⚠️') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '🚨') && !contains(steps.check_subdomain_cert.outputs.cert_risk, '⚠️')
         run: |
           echo "✅ 所有检测项目正常，剩余天数均≥60天"
           echo "🔹 主域名剩余天数：${{ steps.check_domain_whois.outputs.remain_days }}"
