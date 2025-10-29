@@ -54,7 +54,7 @@ jobs:
       - name: Fetch git_branch from API
         id: fetch-branch
         run: |
-          API_URL="https://your-api-url.com/endpoint"  # 替换为实际接口地址
+          API_URL="https://gk-regir-docker-nvlgswjdem.cn-shenzhen.fcapp.run/ready/detail"  # 替换为实际接口地址
           
           # 检查接口URL是否配置
           if [ -z "$API_URL" ] || [ "$API_URL" = "https://your-api-url.com/endpoint" ]; then
