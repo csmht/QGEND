@@ -1,4 +1,4 @@
-name: Extract Image and Git Branch
+name: Extract Image and Git Branch with Warnings
 on:
   workflow_dispatch:  # 手动触发
   push:
@@ -10,53 +10,87 @@ jobs:
   extract-info:
     runs-on: ubuntu-latest
     steps:
-      # 步骤1：检出当前仓库代码（用于读取YAML文件）
+      # 步骤1：检出当前仓库代码
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 步骤2：安装 yq 工具（解析YAML）
+      # 步骤2：安装 yq 工具
       - name: Install yq
         run: |
-          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
-          sudo chmod +x /usr/bin/yq
+          if ! command -v yq &> /dev/null; then
+            echo "⚠️ yq not found, installing now..."
+            sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+            sudo chmod +x /usr/bin/yq
+          else
+            echo "✅ yq is already installed"
+          fi
 
-      # 步骤3：从YAML文件提取image属性
+      # 步骤3：从YAML提取image属性（含警告）
       - name: Extract image from YAML
         id: extract-image
         run: |
-          YAML_FILE="s.yaml"  # 替换为你的YAML文件路径（如实际文件名不同）
+          YAML_FILE="s.yaml"  # 替换为实际YAML文件路径
+          
+          # 检查文件是否存在
           if [ ! -f "$YAML_FILE" ]; then
-            echo "Error: YAML file $YAML_FILE not found!"
-            exit 1
+            echo "⚠️ [WARNING] YAML file '$YAML_FILE' not found in repository!"
+            echo "image=unknown" >> $GITHUB_OUTPUT
+            exit 0  # 不中断工作流，返回默认值
           fi
-          # 提取 resources.fcDemo.props.customContainerConfig.image
+          
+          # 提取属性值
           IMAGE_VALUE=$(yq eval '.resources.fcDemo.props.customContainerConfig.image' "$YAML_FILE")
-          echo "Extracted image: $IMAGE_VALUE"
+          
+          # 检查提取结果是否为空
+          if [ -z "$IMAGE_VALUE" ] || [ "$IMAGE_VALUE" = "null" ]; then
+            echo "⚠️ [WARNING] Failed to extract 'resources.fcDemo.props.customContainerConfig.image' from $YAML_FILE"
+            IMAGE_VALUE="unknown"
+          fi
+          
+          echo "✅ Extracted image: $IMAGE_VALUE"
           echo "image=$IMAGE_VALUE" >> $GITHUB_OUTPUT
 
-      # 步骤4：访问指定接口，获取details.git_branch
+      # 步骤4：访问接口获取git_branch（含警告）
       - name: Fetch git_branch from API
         id: fetch-branch
         run: |
-          # 替换为你的目标接口URL（例如：https://api.example.com/status）
-          API_URL="https://your-api-url.com/endpoint"  # 请修改为实际接口地址
+          API_URL="https://your-api-url.com/endpoint"  # 替换为实际接口地址
           
-          # 发送请求并解析返回值中的 details.git_branch
-          # 使用curl请求，jq解析JSON（若接口返回JSON格式）
-          BRANCH_VALUE=$(curl -s "$API_URL" | jq -r '.details.git_branch')
+          # 检查接口URL是否配置
+          if [ -z "$API_URL" ] || [ "$API_URL" = "https://your-api-url.com/endpoint" ]; then
+            echo "⚠️ [WARNING] API URL is not set or using default value! Please update API_URL."
+            BRANCH_VALUE="unknown"
+          else
+            # 发送请求并处理错误
+            RESPONSE=$(curl -s -w "%{http_code}" "$API_URL")
+            HTTP_CODE=$(echo "$RESPONSE" | tail -n1)  # 提取HTTP状态码
+            BODY=$(echo "$RESPONSE" | head -n -1)     # 提取响应体
           
-          # 检查提取结果（若接口返回非JSON格式，需调整解析方式）
-          if [ "$BRANCH_VALUE" = "null" ] || [ -z "$BRANCH_VALUE" ]; then
-            echo "Warning: Failed to extract details.git_branch from API"
-            BRANCH_VALUE="unknown"  # 默认为unknown，避免空值
+            # 检查HTTP状态码（非200视为失败）
+            if [ "$HTTP_CODE" -ne 200 ]; then
+              echo "⚠️ [WARNING] API request failed! HTTP status code: $HTTP_CODE, Response: $BODY"
+              BRANCH_VALUE="unknown"
+            else
+              # 解析响应体中的git_branch
+              BRANCH_VALUE=$(echo "$BODY" | jq -r '.details.git_branch')
+              if [ "$BRANCH_VALUE" = "null" ] || [ -z "$BRANCH_VALUE" ]; then
+                echo "⚠️ [WARNING] 'details.git_branch' not found in API response! Response: $BODY"
+                BRANCH_VALUE="unknown"
+              fi
+            fi
           fi
           
-          echo "Fetched git_branch: $BRANCH_VALUE"
+          echo "✅ Fetched git_branch: $BRANCH_VALUE"
           echo "git_branch=$BRANCH_VALUE" >> $GITHUB_OUTPUT
 
-      # 步骤5：输出最终结果
-      - name: Show all results
+      # 步骤5：汇总结果（含警告提示）
+      - name: Show final results
         run: |
           echo "===== Extracted Information ====="
           echo "Image from YAML: ${{ steps.extract-image.outputs.image }}"
           echo "Git Branch from API: ${{ steps.fetch-branch.outputs.git_branch }}"
+          
+          # 检查是否有未知值并提示
+          if [ "${{ steps.extract-image.outputs.image }}" = "unknown" ] || [ "${{ steps.fetch-branch.outputs.git_branch }}" = "unknown" ]; then
+            echo "⚠️ [WARNING] Some values are 'unknown' - check previous steps for issues."
+          fi
