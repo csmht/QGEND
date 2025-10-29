@@ -1,0 +1,7 @@
+
+resources:
+  fcDemo:
+    props:
+      customContainerConfig:
+        image: registry.cn-shenzhen.aliyuncs.com/suyiiyii/gk-register:main-251027-ef91d9b
+
