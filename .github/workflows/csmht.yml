@@ -50,60 +50,154 @@ jobs:
           echo "✅ Extracted image: $IMAGE_VALUE"
           echo "image=$IMAGE_VALUE" >> $GITHUB_OUTPUT
 
-      # 步骤4：访问接口获取git_branch和git_commit_id（含警告）
-      - name: Fetch git_branch from API
+      # 步骤4：访问接口获取git_branch和git_commit_id（含重试机制）
+      - name: Fetch git_branch from API with retry
         id: fetch-branch
         run: |
           API_URL="https://gk-regir-docker-nvlgswjdem.cn-shenzhen.fcapp.run/ready/detail"  # 实际接口地址
+          MAX_RETRIES=3
+          RETRY_DELAY=5
+          SERVER_DOWN=false
 
           # 检查接口URL是否配置
           if [ -z "$API_URL" ] || [ "$API_URL" = "https://your-api-url.com/endpoint" ]; then
             echo "⚠️ [WARNING] API URL is not set or using default value! Please update API_URL."
             BRANCH_VALUE="unknown"
           else
-            # 发送请求并分别获取响应体和HTTP状态码
-            BODY=$(curl -s "$API_URL")
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL")
+            echo "🔄 Starting API request with retry mechanism..."
 
-            # 检查HTTP状态码
-            if [ "$HTTP_CODE" -ne 200 ]; then
-              echo "⚠️ [WARNING] API request failed! HTTP status code: $HTTP_CODE"
-              BRANCH_VALUE="unknown"
-            else
+            for i in $(seq 1 $MAX_RETRIES); do
+              echo "Attempt $i/$MAX_RETRIES..."
+
+              # 发送请求，设置100秒超时
+              BODY=$(curl -s --max-time 100 "$API_URL" 2>&1)
+              CURL_EXIT_CODE=$?
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 100 "$API_URL" 2>&1)
+
+              echo "CURL exit code: $CURL_EXIT_CODE"
+              echo "HTTP status code: $HTTP_CODE"
+
+              # 检查curl命令执行状态
+              if [ $CURL_EXIT_CODE -ne 0 ]; then
+                echo "❌ Request failed with curl error: $BODY"
+                if [ $i -eq $MAX_RETRIES ]; then
+                  echo "🚨 All $MAX_RETRIES attempts failed. Server appears to be down."
+                  SERVER_DOWN=true
+                  BRANCH_VALUE="server_down"
+                else
+                  echo "⏳ Retrying in ${RETRY_DELAY} seconds..."
+                  sleep $RETRY_DELAY
+                fi
+                continue
+              fi
+
+              # 检查HTTP状态码
+              if [ "$HTTP_CODE" -ne 200 ]; then
+                echo "❌ HTTP error: $HTTP_CODE - Response: $BODY"
+                if [ $i -eq $MAX_RETRIES ]; then
+                  echo "🚨 All $MAX_RETRIES attempts failed with HTTP errors."
+                  SERVER_DOWN=true
+                  BRANCH_VALUE="server_down"
+                else
+                  echo "⏳ Retrying in ${RETRY_DELAY} seconds..."
+                  sleep $RETRY_DELAY
+                fi
+                continue
+              fi
+
+              # 验证JSON格式
+              if ! echo "$BODY" | jq empty 2>/dev/null; then
+                echo "❌ Invalid JSON response: $BODY"
+                if [ $i -eq $MAX_RETRIES ]; then
+                  echo "🚨 All $MAX_RETRIES attempts failed with invalid JSON."
+                  SERVER_DOWN=true
+                  BRANCH_VALUE="server_down"
+                else
+                  echo "⏳ Retrying in ${RETRY_DELAY} seconds..."
+                  sleep $RETRY_DELAY
+                fi
+                continue
+              fi
+
               # 解析响应体中的git_branch
               BRANCH_VALUE=$(echo "$BODY" | jq -r '.details.git_branch')
               if [ "$BRANCH_VALUE" = "null" ] || [ -z "$BRANCH_VALUE" ]; then
-                echo "⚠️ [WARNING] 'details.git_branch' not found in API response! Response: $BODY"
-                BRANCH_VALUE="unknown"
+                echo "❌ 'details.git_branch' not found in API response! Response: $BODY"
+                if [ $i -eq $MAX_RETRIES ]; then
+                  echo "🚨 All $MAX_RETRIES attempts failed - unexpected response format."
+                  BRANCH_VALUE="unknown"
+                else
+                  echo "⏳ Retrying in ${RETRY_DELAY} seconds..."
+                  sleep $RETRY_DELAY
+                fi
+                continue
+              fi
+
+              # 成功获取数据
+              echo "✅ Successfully fetched git_branch on attempt $i"
+              break
+            done
+          fi
+
+          # 设置输出变量
+          echo "git_branch=$BRANCH_VALUE" >> $GITHUB_OUTPUT
+          echo "server_down=$SERVER_DOWN" >> $GITHUB_OUTPUT
+
+          echo "✅ Final git_branch result: $BRANCH_VALUE"
+          if [ "$SERVER_DOWN" = "true" ]; then
+            echo "🚨 Server status: DOWN"
+          else
+            echo "✅ Server status: UP"
+          fi
+
+      # 步骤5：获取git_commit_id（复用之前API调用的结果）
+      - name: Extract git_commit_id from API response
+        id: fetch-commit
+        run: |
+          # 检查服务器状态
+          if [ "${{ steps.fetch-branch.outputs.server_down }}" = "true" ]; then
+            echo "⚠️ Server is down, cannot fetch git_commit_id"
+            COMMIT_VALUE="server_down"
+          elif [ "${{ steps.fetch-branch.outputs.git_branch }}" = "unknown" ]; then
+            echo "⚠️ API response was invalid, cannot fetch git_commit_id"
+            COMMIT_VALUE="unknown"
+          else
+            echo "✅ Using API response from previous step to extract git_commit_id"
+
+            # 重新发起一次API请求来获取完整响应（因为之前的响应没有保存）
+            API_URL="https://gk-regir-docker-nvlgswjdem.cn-shenzhen.fcapp.run/ready/detail"
+
+            # 使用相同的重试机制，但只尝试1次因为前面已经验证了服务器状态
+            BODY=$(curl -s --max-time 100 "$API_URL" 2>&1)
+            CURL_EXIT_CODE=$?
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 100 "$API_URL" 2>&1)
+
+            if [ $CURL_EXIT_CODE -ne 0 ]; then
+              echo "❌ Unexpected curl error when fetching git_commit_id: $BODY"
+              COMMIT_VALUE="unknown"
+            elif [ "$HTTP_CODE" -ne 200 ]; then
+              echo "❌ Unexpected HTTP error when fetching git_commit_id: $HTTP_CODE"
+              COMMIT_VALUE="unknown"
+            else
+              # 验证JSON格式
+              if ! echo "$BODY" | jq empty 2>/dev/null; then
+                echo "❌ Invalid JSON response when fetching git_commit_id: $BODY"
+                COMMIT_VALUE="unknown"
+              else
+                # 解析响应体中的git_commit_id
+                COMMIT_VALUE=$(echo "$BODY" | jq -r '.details.git_commit_id')
+                if [ "$COMMIT_VALUE" = "null" ] || [ -z "$COMMIT_VALUE" ]; then
+                  echo "❌ 'details.git_commit_id' not found in API response! Response: $BODY"
+                  COMMIT_VALUE="unknown"
+                else
+                  echo "✅ Successfully extracted git_commit_id: $COMMIT_VALUE"
+                fi
               fi
             fi
           fi
 
-          echo "✅ Fetched git_branch: $BRANCH_VALUE"
-          echo "git_branch=$BRANCH_VALUE" >> $GITHUB_OUTPUT
-
-      # 步骤5：获取git_commit_id
-      - name: Fetch git_commit_id from API
-        id: fetch-commit
-        run: |
-          API_URL="https://gk-regir-docker-nvlgswjdem.cn-shenzhen.fcapp.run/ready/detail"
-
-          BODY=$(curl -s "$API_URL")
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL")
-
-          if [ "$HTTP_CODE" -ne 200 ]; then
-            echo "⚠️ [WARNING] API request failed! HTTP status code: $HTTP_CODE"
-            COMMIT_VALUE="unknown"
-          else
-            COMMIT_VALUE=$(echo "$BODY" | jq -r '.details.git_commit_id')
-            if [ "$COMMIT_VALUE" = "null" ] || [ -z "$COMMIT_VALUE" ]; then
-              echo "⚠️ [WARNING] 'details.git_commit_id' not found in API response!"
-              COMMIT_VALUE="unknown"
-            fi
-          fi
-
-          echo "✅ Fetched git_commit_id: $COMMIT_VALUE"
           echo "git_commit_id=$COMMIT_VALUE" >> $GITHUB_OUTPUT
+          echo "✅ Final git_commit_id result: $COMMIT_VALUE"
 
       # 步骤6：解析镜像标签
       - name: Parse image tag
@@ -177,16 +271,66 @@ jobs:
             echo "✅ All values retrieved successfully"
           fi
 
-          # 设置版本不一致检测标志
+          # 设置版本不一致检测标志和服务器状态检测
           VERSION_MISMATCH=false
-          if [ "$API_BRANCH" != "$IMAGE_BRANCH" ] || ([ "$API_COMMIT" != "unknown" ] && [ "$IMAGE_COMMIT" != "unknown" ] && [ "${API_COMMIT:0:7}" != "$IMAGE_COMMIT" ]); then
+          SERVER_DOWN=false
+
+          # 检查服务器是否宕机
+          if [ "$API_BRANCH" = "server_down" ] || [ "$API_COMMIT" = "server_down" ]; then
+            SERVER_DOWN=true
+            echo "🚨 Server is down - cannot perform version comparison"
+            echo "server_down=true" >> $GITHUB_OUTPUT
+            echo "version_mismatch=false" >> $GITHUB_OUTPUT
+          # 检查版本是否不一致
+          elif [ "$API_BRANCH" != "$IMAGE_BRANCH" ] || ([ "$API_COMMIT" != "unknown" ] && [ "$IMAGE_COMMIT" != "unknown" ] && [ "${API_COMMIT:0:7}" != "$IMAGE_COMMIT" ]); then
             VERSION_MISMATCH=true
             echo "version_mismatch=true" >> $GITHUB_OUTPUT
+            echo "server_down=false" >> $GITHUB_OUTPUT
           else
             echo "version_mismatch=false" >> $GITHUB_OUTPUT
+            echo "server_down=false" >> $GITHUB_OUTPUT
           fi
 
-      # 步骤8：版本不一致时发送飞书警告
+      # 步骤8：服务器宕机时发送飞书警告
+      - name: Send Feishu alert on server down
+        if: steps.compare.outputs.server_down == 'true'
+        run: |
+          echo "🚨 Server down detected, sending Feishu alert..."
+
+          # 获取环境变量
+          WEBHOOK_URL="https://open.feishu.cn/open-apis/bot/v2/hook/93854238-e45b-431e-a309-ec36daf581f6"
+
+          if [ -z "$WEBHOOK_URL" ]; then
+            echo "⚠️ [WARNING] FEISHU_WEBHOOK_URL not configured. Please add it to repository secrets."
+            exit 0
+          fi
+
+          # 获取基本信息
+          IMAGE_FULL="${{ steps.extract-image.outputs.image }}"
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+
+          # 构建服务器宕机警告消息
+          cat << EOF > feishu_message.json
+          {
+            "msg_type": "text",
+            "content": {
+              "text": "🚨 服务器宕机警告\n\nAPI服务器无法访问！\n\n检测详情：\n- 经过3次重试，每次100秒超时\n- 总尝试时间约5分钟\n- 服务器无响应或返回错误\n\n当前运行的镜像：\n${IMAGE_FULL}\n\n紧急建议操作：\n1. 立即检查服务器状态\n2. 联系运维团队处理\n3. 确认服务器网络连接\n4. 检查服务进程是否正常运行\n\n相关链接：\n代码仓库：${REPO_URL}\nAPI地址：https://gk-regir-docker-nvlgswjdem.cn-shenzhen.fcapp.run/ready/detail\n\n⚠️ 此为严重故障，请立即处理！"
+            }
+          }
+          EOF
+
+          # 发送飞书消息
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d @feishu_message.json)
+
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "✅ Server down alert sent successfully!"
+          else
+            echo "❌ Failed to send Feishu alert. HTTP code: $HTTP_CODE"
+          fi
+
+      # 步骤9：版本不一致时发送飞书警告
       - name: Send Feishu alert on version mismatch
         if: steps.compare.outputs.version_mismatch == 'true'
         run: |
@@ -213,7 +357,7 @@ jobs:
           {
             "msg_type": "text",
             "content": {
-              "text": "🚨 版本不一致警告\n\n版本对比信息：\nAPI返回版本：\n  分支：${API_BRANCH}\n  提交：${API_COMMIT:0:7}\n当前镜像版本：\n  分支：${IMAGE_BRANCH}\n  提交：${IMAGE_COMMIT}\n\n当前镜像：\n${IMAGE_FULL}\n\n建议操作：\n1. 检查部署流程是否正常\n2. 更新容器镜像到最新版本\n3. 确认代码版本与部署版本一致\n\n相关链接：\n代码仓库：${REPO_URL}\nAPI状态：https://gk-regir-docker-nvlgswjdem.cn-shenzhen.fcapp.run/ready/detail"
+              "text": "🚨 版本不一致警告\n\n版本对比信息：\n测试环境版本：\n  分支：${API_BRANCH}\n  提交：${API_COMMIT:0:7}\ns.yaml声明版本：\n  分支：${IMAGE_BRANCH}\n  提交：${IMAGE_COMMIT}\n\n当前镜像：\n${IMAGE_FULL}\n\n建议操作：\n1. 检查部署流程是否正常\n2. 更新容器镜像到最新版本\n3. 确认代码版本与部署版本一致\n\n相关链接：\n代码仓库：${REPO_URL}\nAPI状态：https://gk-regir-docker-nvlgswjdem.cn-shenzhen.fcapp.run/ready/detail"
             }
           }
           EOF
