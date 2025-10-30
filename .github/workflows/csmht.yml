@@ -208,102 +208,12 @@ jobs:
           IMAGE_FULL="${{ steps.extract-image.outputs.image }}"
           REPO_URL="${{ github.server_url }}/${{ github.repository }}"
 
-          # 构建飞书消息
+          # 构建飞书文本消息
           cat << EOF > feishu_message.json
           {
-            "msg_type": "interactive",
-            "card": {
-              "elements": [
-                {
-                  "tag": "div",
-                  "text": {
-                    "content": "🚨 **版本不一致警告**",
-                    "tag": "lark_md"
-                  }
-                },
-                {
-                  "tag": "hr"
-                },
-                {
-                  "tag": "div",
-                  "text": {
-                    "content": "**版本对比信息：**",
-                    "tag": "lark_md"
-                  }
-                },
-                {
-                  "tag": "div",
-                  "fields": [
-                    {
-                      "is_short": true,
-                      "text": {
-                        "content": "**API返回版本**\n分支：${API_BRANCH}\n提交：${API_COMMIT:0:7}",
-                        "tag": "lark_md"
-                      }
-                    },
-                    {
-                      "is_short": true,
-                      "text": {
-                        "content": "**当前镜像版本**\n分支：${IMAGE_BRANCH}\n提交：${IMAGE_COMMIT}",
-                        "tag": "lark_md"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "tag": "div",
-                  "text": {
-                    "content": "**当前镜像：**\n\`${IMAGE_FULL}\`",
-                    "tag": "lark_md"
-                  }
-                },
-                {
-                  "tag": "hr"
-                },
-                {
-                  "tag": "div",
-                  "text": {
-                    "content": "**建议操作：**",
-                    "tag": "lark_md"
-                  }
-                },
-                {
-                  "tag": "div",
-                  "text": {
-                    "content": "1. 检查部署流程是否正常\n2. 更新容器镜像到最新版本\n3. 确认代码版本与部署版本一致",
-                    "tag": "lark_md"
-                  }
-                },
-                {
-                  "tag": "action",
-                  "actions": [
-                    {
-                      "tag": "button",
-                      "text": {
-                        "content": "查看代码仓库",
-                        "tag": "plain_text"
-                      },
-                      "type": "primary",
-                      "url": "${REPO_URL}"
-                    },
-                    {
-                      "tag": "button",
-                      "text": {
-                        "content": "检查API状态",
-                        "tag": "plain_text"
-                      },
-                      "url": "https://gk-regir-docker-nvlgswjdem.cn-shenzhen.fcapp.run/ready/detail"
-                    }
-                  ]
-                }
-              ],
-              "header": {
-                "title": {
-                  "content": "🚨 容器版本不一致警告",
-                  "tag": "plain_text"
-                },
-                "template": "red"
-              }
+            "msg_type": "text",
+            "content": {
+              "text": "🚨 版本不一致警告\n\n版本对比信息：\nAPI返回版本：\n  分支：${API_BRANCH}\n  提交：${API_COMMIT:0:7}\n当前镜像版本：\n  分支：${IMAGE_BRANCH}\n  提交：${IMAGE_COMMIT}\n\n当前镜像：\n${IMAGE_FULL}\n\n建议操作：\n1. 检查部署流程是否正常\n2. 更新容器镜像到最新版本\n3. 确认代码版本与部署版本一致\n\n相关链接：\n代码仓库：${REPO_URL}\nAPI状态：https://gk-regir-docker-nvlgswjdem.cn-shenzhen.fcapp.run/ready/detail"
             }
           }
           EOF
