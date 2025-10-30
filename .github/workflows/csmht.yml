@@ -54,21 +54,20 @@ jobs:
       - name: Fetch git_branch from API
         id: fetch-branch
         run: |
-          API_URL="https://gk-regir-docker-nvlgswjdem.cn-shenzhen.fcapp.run/ready/detail"  # 替换为实际接口地址
+          API_URL="https://gk-regir-docker-nvlgswjdem.cn-shenzhen.fcapp.run/ready/detail"  # 实际接口地址
           
           # 检查接口URL是否配置
           if [ -z "$API_URL" ] || [ "$API_URL" = "https://your-api-url.com/endpoint" ]; then
             echo "⚠️ [WARNING] API URL is not set or using default value! Please update API_URL."
             BRANCH_VALUE="unknown"
           else
-            # 发送请求并处理错误
-            RESPONSE=$(curl -s -w "%{http_code}" "$API_URL")
-            HTTP_CODE=$(echo "$RESPONSE" | tail -n1)  # 提取HTTP状态码
-            BODY=$(echo "$RESPONSE" | head -n -1)     # 提取响应体
+            # 发送请求并分别获取响应体和HTTP状态码
+            BODY=$(curl -s "$API_URL")
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL")
           
-            # 检查HTTP状态码（非200视为失败）
+            # 检查HTTP状态码
             if [ "$HTTP_CODE" -ne 200 ]; then
-              echo "⚠️ [WARNING] API request failed! HTTP status code: $HTTP_CODE, Response: $BODY"
+              echo "⚠️ [WARNING] API request failed! HTTP status code: $HTTP_CODE"
               BRANCH_VALUE="unknown"
             else
               # 解析响应体中的git_branch
