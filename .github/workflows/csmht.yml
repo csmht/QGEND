@@ -50,12 +50,12 @@ jobs:
           echo "✅ Extracted image: $IMAGE_VALUE"
           echo "image=$IMAGE_VALUE" >> $GITHUB_OUTPUT
 
-      # 步骤4：访问接口获取git_branch（含警告）
+      # 步骤4：访问接口获取git_branch和git_commit_id（含警告）
       - name: Fetch git_branch from API
         id: fetch-branch
         run: |
           API_URL="https://gk-regir-docker-nvlgswjdem.cn-shenzhen.fcapp.run/ready/detail"  # 实际接口地址
-          
+
           # 检查接口URL是否配置
           if [ -z "$API_URL" ] || [ "$API_URL" = "https://your-api-url.com/endpoint" ]; then
             echo "⚠️ [WARNING] API URL is not set or using default value! Please update API_URL."
@@ -64,7 +64,7 @@ jobs:
             # 发送请求并分别获取响应体和HTTP状态码
             BODY=$(curl -s "$API_URL")
             HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL")
-          
+
             # 检查HTTP状态码
             if [ "$HTTP_CODE" -ne 200 ]; then
               echo "⚠️ [WARNING] API request failed! HTTP status code: $HTTP_CODE"
@@ -78,18 +78,100 @@ jobs:
               fi
             fi
           fi
-          
+
           echo "✅ Fetched git_branch: $BRANCH_VALUE"
           echo "git_branch=$BRANCH_VALUE" >> $GITHUB_OUTPUT
 
-      # 步骤5：汇总结果（含警告提示）
-      - name: Show final results
+      # 步骤5：获取git_commit_id
+      - name: Fetch git_commit_id from API
+        id: fetch-commit
         run: |
-          echo "===== Extracted Information ====="
-          echo "Image from YAML: ${{ steps.extract-image.outputs.image }}"
-          echo "Git Branch from API: ${{ steps.fetch-branch.outputs.git_branch }}"
-          
-          # 检查是否有未知值并提示
-          if [ "${{ steps.extract-image.outputs.image }}" = "unknown" ] || [ "${{ steps.fetch-branch.outputs.git_branch }}" = "unknown" ]; then
+          API_URL="https://gk-regir-docker-nvlgswjdem.cn-shenzhen.fcapp.run/ready/detail"
+
+          BODY=$(curl -s "$API_URL")
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL")
+
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "⚠️ [WARNING] API request failed! HTTP status code: $HTTP_CODE"
+            COMMIT_VALUE="unknown"
+          else
+            COMMIT_VALUE=$(echo "$BODY" | jq -r '.details.git_commit_id')
+            if [ "$COMMIT_VALUE" = "null" ] || [ -z "$COMMIT_VALUE" ]; then
+              echo "⚠️ [WARNING] 'details.git_commit_id' not found in API response!"
+              COMMIT_VALUE="unknown"
+            fi
+          fi
+
+          echo "✅ Fetched git_commit_id: $COMMIT_VALUE"
+          echo "git_commit_id=$COMMIT_VALUE" >> $GITHUB_OUTPUT
+
+      # 步骤6：解析镜像标签
+      - name: Parse image tag
+        id: parse-image
+        run: |
+          IMAGE="${{ steps.extract-image.outputs.image }}"
+          if [ "$IMAGE" = "unknown" ]; then
+            echo "image_branch=unknown" >> $GITHUB_OUTPUT
+            echo "image_commit=unknown" >> $GITHUB_OUTPUT
+            echo "⚠️ Cannot parse image tag - image is unknown"
+          else
+            # 提取标签部分（最后一个冒号后的内容）
+            TAG=${IMAGE##*:}
+
+            # 解析标签：BRANCH-DATE-COMMIT
+            IFS='-' read -r BRANCH DATE COMMIT <<< "$TAG"
+
+            echo "image_branch=$BRANCH" >> $GITHUB_OUTPUT
+            echo "image_commit=$COMMIT" >> $GITHUB_OUTPUT
+
+            echo "✅ Parsed image tag - Branch: $BRANCH, Date: $DATE, Commit: $COMMIT"
+          fi
+
+      # 步骤7：版本比较和结果输出
+      - name: Compare versions and show final results
+        run: |
+          echo "===== Version Comparison ====="
+
+          # 获取各步骤的输出值
+          API_COMMIT="${{ steps.fetch-commit.outputs.git_commit_id }}"
+          IMAGE_COMMIT="${{ steps.parse-image.outputs.image_commit }}"
+          API_BRANCH="${{ steps.fetch-branch.outputs.git_branch }}"
+          IMAGE_BRANCH="${{ steps.parse-image.outputs.image_branch }}"
+          IMAGE_FULL="${{ steps.extract-image.outputs.image }}"
+
+          echo "Full Image: $IMAGE_FULL"
+          echo "API Branch: $API_BRANCH"
+          echo "Image Branch: $IMAGE_BRANCH"
+          echo "API Commit: $API_COMMIT"
+          echo "Image Commit: $IMAGE_COMMIT"
+          echo ""
+
+          # 分支比较
+          if [ "$API_BRANCH" = "$IMAGE_BRANCH" ] && [ "$API_BRANCH" != "unknown" ]; then
+            echo "✅ Branch match: $API_BRANCH"
+          else
+            echo "❌ Branch mismatch! API: $API_BRANCH, Image: $IMAGE_BRANCH"
+          fi
+
+          # 提交ID比较（将完整提交ID截取前7位）
+          if [ "$API_COMMIT" != "unknown" ] && [ "$IMAGE_COMMIT" != "unknown" ]; then
+            API_COMMIT_SHORT=${API_COMMIT:0:7}
+            if [ "$API_COMMIT_SHORT" = "$IMAGE_COMMIT" ]; then
+              echo "✅ Commit match: $API_COMMIT_SHORT"
+              echo "🎉 Version consistency verified!"
+            else
+              echo "❌ Commit mismatch! API: $API_COMMIT_SHORT, Image: $IMAGE_COMMIT"
+              echo "⚠️ The running container image version does not match the latest code version."
+              echo "💡 Consider updating the container image to the latest version."
+            fi
+          else
+            echo "⚠️ Cannot compare commits - one or both values are unknown"
+          fi
+
+          echo ""
+          echo "===== Summary ====="
+          if [ "$API_BRANCH" = "unknown" ] || [ "$IMAGE_BRANCH" = "unknown" ] || [ "$API_COMMIT" = "unknown" ] || [ "$IMAGE_COMMIT" = "unknown" ]; then
             echo "⚠️ [WARNING] Some values are 'unknown' - check previous steps for issues."
+          else
+            echo "✅ All values retrieved successfully"
           fi
